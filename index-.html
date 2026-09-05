@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1116">
+<title>Yay or Boo – Topp 10</title>
+<style>
+  :root{--bg:#0e1116;--ink:#eef3f8;--muted:#93a0b0;--yay:#33d17a;--boo:#ff5a4d;
+        --yaybg:#0e1a13;--boobg:#1a1010;--line:#232c38;}
+  *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+       overflow:hidden;display:flex;flex-direction:column;height:100vh;height:100dvh;}
+  /* topbar */
+  .topbar{flex:0 0 auto;height:50px;display:flex;align-items:center;gap:10px;padding:0 12px;border-bottom:1px solid var(--line);background:#0c1117;}
+  .wm{font-weight:800;font-size:15px;letter-spacing:.3px;} .wm .y{color:var(--yay);} .wm .b{color:var(--boo);}
+  .tb-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+  .rules-link{color:var(--muted);font-size:12px;text-decoration:underline;cursor:pointer;}
+  .dl{background:var(--yay);color:#08130c;border:none;border-radius:999px;font-weight:800;font-size:13px;padding:8px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .dl.soon{background:#232c38;color:var(--muted);}
+  .dl svg{width:14px;height:14px;}
+  /* board */
+  .board{flex:1;min-height:0;display:flex;flex-direction:column;max-width:680px;width:100%;margin:0 auto;}
+  .cols{flex:1;display:flex;min-height:0;}
+  .col{flex:1;min-width:0;display:flex;flex-direction:column;padding:12px 10px 8px;}
+  .col.yay{background:radial-gradient(120% 55% at 50% 0%,rgba(51,209,122,.10),transparent 60%),var(--yaybg);}
+  .col.boo{background:radial-gradient(120% 55% at 50% 0%,rgba(255,90,77,.10),transparent 60%),var(--boobg);border-left:1px solid var(--line);}
+  .chead{display:flex;align-items:center;justify-content:center;gap:7px;margin-bottom:10px;}
+  .chead .t{font-size:13px;font-weight:800;letter-spacing:2px;color:var(--muted);}
+  .col.yay .chead .sym{color:var(--yay);} .col.boo .chead .sym{color:var(--boo);}
+  .sym{display:inline-flex;align-items:center;}
+  .chead .sym svg{width:24px;height:24px;display:block;}
+  .list{flex:1;display:flex;flex-direction:column;gap:5px;overflow-y:auto;scrollbar-width:none;}
+  .list::-webkit-scrollbar{display:none;}
+  .row{position:relative;border-radius:9px;overflow:hidden;background:#161c24;border:1px solid var(--line);
+       display:flex;align-items:center;gap:6px;padding:8px 9px;min-height:36px;}
+  .fill{position:absolute;inset:0;width:0;transition:width .5s cubic-bezier(.2,.8,.2,1);}
+  .yay .fill{background:linear-gradient(90deg,rgba(51,209,122,.30),rgba(51,209,122,.05));}
+  .boo .fill{background:linear-gradient(90deg,rgba(255,90,77,.30),rgba(255,90,77,.05));}
+  .rank{position:relative;font-size:11px;font-weight:800;color:var(--muted);width:16px;text-align:center;flex:0 0 auto;}
+  .row.p1 .rank{color:#ffd54a;font-size:13px;}
+  .word{position:relative;flex:1;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .count{position:relative;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;flex:0 0 auto;}
+  .yay .count{color:var(--yay);} .boo .count{color:var(--boo);}
+  .textrow{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px;background:#11161d;}
+  .textrow input{width:100%;background:#0c1218;border:1px solid #2a3340;border-radius:11px;color:var(--ink);
+       font-size:16px;text-align:center;padding:13px 12px;outline:none;}
+  .textrow input:focus{border-color:var(--muted);}
+  .btns{display:flex;height:92px;flex:0 0 auto;}
+  .bigbtn{flex:1;border:none;cursor:pointer;font-weight:900;letter-spacing:1px;font-size:23px;
+       display:flex;align-items:center;justify-content:center;gap:10px;transition:transform .08s,filter .1s;}
+  .bigbtn:active{transform:scale(.97);filter:brightness(1.1);}
+  .bigbtn .sym svg{width:29px;height:29px;display:block;}
+  .bigbtn.yay{background:radial-gradient(circle at 50% 20%,#5be79a,var(--yay));color:#08130c;}
+  .bigbtn.boo{background:radial-gradient(circle at 50% 20%,#ff8177,var(--boo));color:#2a0906;border-left:2px solid #0e1116;}
+  .toast{position:fixed;left:50%;bottom:108px;transform:translateX(-50%);background:#161c24;border:1px solid var(--line);
+       border-radius:999px;padding:8px 15px;font-size:13px;font-weight:700;opacity:0;transition:opacity .25s,bottom .25s;pointer-events:none;z-index:60;}
+  .toast.show{opacity:1;bottom:118px;}
+  /* mobil: håll knapparna synliga och kompakta */
+  @media (max-height:740px){
+    .btns{height:76px;} .bigbtn{font-size:20px;} .bigbtn .sym svg{width:25px;height:25px;}
+    .textrow{padding:9px 12px;} .textrow input{padding:11px 12px;font-size:15px;}
+    .topbar{height:46px;}
+  }
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);display:none;align-items:center;justify-content:center;z-index:70;padding:18px;}
+  .modal.open{display:flex;}
+  .card{background:#12181f;border:1px solid var(--line);border-radius:16px;max-width:440px;width:100%;max-height:84vh;overflow-y:auto;padding:20px 20px 18px;}
+  .card h2{font-size:17px;margin-bottom:4px;}
+  .card .lead{color:var(--muted);font-size:12.5px;margin-bottom:14px;}
+  .card ul{list-style:none;display:flex;flex-direction:column;gap:11px;margin-bottom:16px;}
+  .card li{font-size:13.5px;line-height:1.45;padding-left:22px;position:relative;}
+  .card li b{color:var(--ink);}
+  .card li::before{content:"•";position:absolute;left:6px;top:-1px;color:var(--yay);font-weight:900;}
+  .card .fine{color:var(--muted);font-size:11.5px;line-height:1.4;margin-bottom:16px;}
+  .card .ok{width:100%;background:var(--yay);color:#08130c;border:none;border-radius:11px;font-size:15px;font-weight:800;padding:13px;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="wm"><span class="y">Yay</span> or <span class="b">Boo</span></div>
+  <div class="tb-right">
+    <span class="rules-link" onclick="openRules()">Regler</span>
+    <button class="dl" id="dlBtn"></button>
+  </div>
+</div>
+
+<div class="board">
+  <div class="cols">
+    <div class="col yay">
+      <div class="chead"><span class="sym" data-sym="y"></span><span class="t">TOP 10</span></div>
+      <div class="list" id="listY"></div>
+    </div>
+    <div class="col boo">
+      <div class="chead"><span class="sym" data-sym="b"></span><span class="t">TOP 10</span></div>
+      <div class="list" id="listB"></div>
+    </div>
+  </div>
+  <div class="textrow">
+    <input id="txt" maxlength="24" placeholder="Skriv ett ord..." autocomplete="off">
+  </div>
+  <div class="btns">
+    <button class="bigbtn yay" onclick="submit('y')"><span class="sym" data-sym="y"></span> YAY</button>
+    <button class="bigbtn boo" onclick="submit('b')"><span class="sym" data-sym="b"></span> BOOO</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal" id="modal">
+  <div class="card">
+    <h2>Snabba regler</h2>
+    <div class="lead">Läs, det tar 20 sekunder.</div>
+    <ul>
+      <li><b>Kartlägg grejer och platser – inte namngivna personer.</b> Spyor, skit, arga visselpipor: japp. Utpekade personer: nej, tyvärr inte. Sidan vill ha äckel, inte förtal.</li>
+      <li><b>Inläggen kommer från vanligt folk, inte från denna koncern.</b> Ett inlägg betyder "någon tyckte något", inte sanning – och folk kan skriva på fyllan, då blir det snurrigt. Använd huvudet.</li>
+      <li><b>Vi säljer inte din töntiga data, ingen vill ha den ändå.</b> Skiten raderas efter ett dygn så fylleinläggen försvinner. Känn lugnet.</li>
+      <li><b>Skräp och hot åker ut, vet hut.</b> Vi förbehåller oss rätten att ta bort inlägg och stänga av vid missbruk (av appen alltså).</li>
+      <li><b>Du ansvarar för det du skriver</b> – och så är det.</li>
+    </ul>
+    <div class="fine">Genom att använda Yay or Boo godkänner du det här. Tjänsten tillhandahålls "i befintligt skick" utan garantier. Innehåll skapas av användare och speglar inte våra åsikter.</div>
+    <button class="ok" onclick="closeRules()">Jag fattar 👍</button>
+  </div>
+</div>
+
+<script>
+/* === KLISTRA IN din Google Play-länk här när appen är publicerad === */
+const PLAY_URL = '';   // t.ex. 'https://play.google.com/store/apps/details?id=...'
+/* ================================================================= */
+
+/* Symboler: pigg pil snett upp (Yay) + slokpil neråt (Boo) */
+const SVG_YAY = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="17.5" y2="6.5"/><polyline points="9 6.5 17.5 6.5 17.5 15"/></svg>`;
+const SVG_BOO = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5 C 9 6.5, 14.5 8.5, 16 16"/><polyline points="11.5 13.5 16 18 20.5 13.5"/></svg>`;
+const SVG_PLAY = `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3.5 L20 12 L4 20.5 Z"/></svg>`;
+
+let yay=[
+  {w:'Tequila',n:142},{w:'Pad Thai',n:118},{w:'Solnedgången',n:97},{w:'Massage',n:84},
+  {w:'Full moon party',n:73},{w:'Mango sticky rice',n:61},{w:'Billig öl',n:55},
+  {w:'Stranden',n:48},{w:'Live musik',n:40},{w:'Scooter-tur',n:33},{w:'Smoothie',n:26}
+];
+let boo=[
+  {w:'Måsbajs',n:76},{w:'Trafiken',n:71},{w:'Regnet',n:64},{w:'Myggen',n:58},
+  {w:'Dyr taxi',n:52},{w:'Trångt',n:47},{w:'Stängt',n:39},{w:'Kön',n:34},
+  {w:'Ljudet kl 03',n:29},{w:'Skräp',n:24},{w:'Snorkiga typer',n:18}
+];
+
+function render(side){
+  const arr=(side==='y'?yay:boo).slice().sort((a,b)=>b.n-a.n).slice(0,10);
+  const max=arr.length?arr[0].n:1;
+  const el=document.getElementById(side==='y'?'listY':'listB');
+  el.innerHTML='';
+  arr.forEach((item,i)=>{
+    const row=document.createElement('div');
+    row.className='row'+(i===0?' p1':'');
+    row.innerHTML='<span class="fill"></span><span class="rank">'+(i+1)+'</span>'+
+      '<span class="word">'+esc(item.w)+'</span><span class="count">'+item.n+'</span>';
+    el.appendChild(row);
+    requestAnimationFrame(()=>{row.querySelector('.fill').style.width=(item.n/max*100)+'%';});
+  });
+}
+function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1400);}
+function submit(side){
+  const inp=document.getElementById('txt');
+  const t=inp.value.trim();if(!t){inp.focus();return;}
+  const arr=side==='y'?yay:boo;
+  const hit=arr.find(x=>x.w.toLowerCase()===t.toLowerCase());
+  if(hit)hit.n++;else arr.push({w:t,n:1});
+  inp.value='';render(side);
+  toast((side==='y'?'Yay':'Booo')+' – "'+t+'"');
+}
+function openRules(){document.getElementById('modal').classList.add('open');}
+function closeRules(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeRules();});
+document.getElementById('txt').addEventListener('keydown',e=>{if(e.key==='Enter')submit('y');});
+
+/* ladda ner-knapp: riktig länk om PLAY_URL finns, annars "snart" */
+const dl=document.getElementById('dlBtn');
+if(PLAY_URL){
+  dl.innerHTML=SVG_PLAY+' Ladda ner';
+  dl.onclick=()=>window.open(PLAY_URL,'_blank');
+}else{
+  dl.innerHTML=SVG_PLAY+' Snart på Google Play';
+  dl.classList.add('soon');
+  dl.onclick=()=>toast('Appen släpps snart! 🚀');
+}
+
+document.querySelectorAll('[data-sym="y"]').forEach(e=>e.innerHTML=SVG_YAY);
+document.querySelectorAll('[data-sym="b"]').forEach(e=>e.innerHTML=SVG_BOO);
+render('y');render('b');
+</script>
+</body>
+</html>
