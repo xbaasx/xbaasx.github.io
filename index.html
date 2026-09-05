@@ -75,6 +75,17 @@
   .card li::before{content:"•";position:absolute;left:6px;top:-1px;color:var(--yay);font-weight:900;}
   .card .fine{color:var(--muted);font-size:11.5px;line-height:1.4;margin-bottom:16px;}
   .card .ok{width:100%;background:var(--yay);color:#08130c;border:none;border-radius:11px;font-size:15px;font-weight:800;padding:13px;cursor:pointer;}
+  /* rösta-popup */
+  .card.vote{text-align:center;max-width:320px;}
+  .vword{font-size:20px;font-weight:800;margin-bottom:2px;word-break:break-word;}
+  .vcount{font-size:46px;font-weight:900;font-variant-numeric:tabular-nums;margin:6px 0 20px;}
+  .vbtns{display:flex;gap:18px;justify-content:center;margin-bottom:18px;}
+  .vbtn{width:66px;height:66px;border-radius:50%;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .08s,filter .1s;}
+  .vbtn:active{transform:scale(.92);filter:brightness(1.1);}
+  .vbtn svg{width:34px;height:34px;}
+  .vbtn.up{background:var(--yay);color:#08130c;}
+  .vbtn.down{background:var(--boo);color:#2a0906;}
+  .vclose{background:var(--panel-2);border:1px solid var(--line);color:var(--muted);border-radius:10px;padding:11px 20px;font-weight:700;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -124,6 +135,18 @@
   </div>
 </div>
 
+<div class="modal" id="voteModal">
+  <div class="card vote">
+    <div class="vword" id="voteWord"></div>
+    <div class="vcount" id="voteCount">0</div>
+    <div class="vbtns">
+      <button class="vbtn up" id="voteUp" onclick="vote(1)"></button>
+      <button class="vbtn down" id="voteDown" onclick="vote(-1)"></button>
+    </div>
+    <button class="vclose" onclick="closeVote()">Stäng</button>
+  </div>
+</div>
+
 <script>
 /* === KLISTRA IN din Google Play-länk här när appen är publicerad === */
 const PLAY_URL = '';   // t.ex. 'https://play.google.com/store/apps/details?id=...'
@@ -155,6 +178,7 @@ function render(side){
     row.className='row'+(i===0?' p1':'');
     row.innerHTML='<span class="fill"></span><span class="rank">'+(i+1)+'</span>'+
       '<span class="word">'+esc(item.w)+'</span><span class="count">'+item.n+'</span>';
+    row.style.cursor='pointer';row.onclick=()=>openVote(side,item.w);
     el.appendChild(row);
     requestAnimationFrame(()=>{row.querySelector('.fill').style.width=(item.n/max*100)+'%';});
   });
@@ -185,6 +209,32 @@ if(PLAY_URL){
   dl.classList.add('soon');
   dl.onclick=()=>toast('Appen släpps snart! 🚀');
 }
+
+/* rösta-popup: klicka rad -> visa ord + siffra, pil upp +1, slokpil -1 */
+let voteRef=null;
+function openVote(side,word){
+  const arr=side==='y'?yay:boo;
+  const it=arr.find(x=>x.w.toLowerCase()===word.toLowerCase());
+  if(!it)return;
+  voteRef={side,word:it.w};
+  document.getElementById('voteWord').textContent=it.w;
+  document.getElementById('voteCount').textContent=it.n;
+  document.getElementById('voteModal').classList.add('open');
+}
+function vote(delta){
+  if(!voteRef)return;
+  const arr=voteRef.side==='y'?yay:boo;
+  const idx=arr.findIndex(x=>x.w.toLowerCase()===voteRef.word.toLowerCase());
+  if(idx<0){closeVote();return;}
+  arr[idx].n+=delta;
+  if(arr[idx].n<=0){arr.splice(idx,1);render(voteRef.side);closeVote();return;}
+  document.getElementById('voteCount').textContent=arr[idx].n;
+  render(voteRef.side);
+}
+function closeVote(){document.getElementById('voteModal').classList.remove('open');voteRef=null;}
+document.getElementById('voteModal').addEventListener('click',e=>{if(e.target.id==='voteModal')closeVote();});
+document.getElementById('voteUp').innerHTML=SVG_YAY;
+document.getElementById('voteDown').innerHTML=SVG_BOO;
 
 document.querySelectorAll('[data-sym="y"]').forEach(e=>e.innerHTML=SVG_YAY);
 document.querySelectorAll('[data-sym="b"]').forEach(e=>e.innerHTML=SVG_BOO);
