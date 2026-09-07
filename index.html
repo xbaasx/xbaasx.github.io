@@ -42,7 +42,7 @@
   .vibebtn.on{background:#a97bff;color:#fff;}
   .vibehint{position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:590;background:rgba(13,11,20,.85);color:#fff;font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;display:none;pointer-events:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);white-space:nowrap;}
   .vibehint.show{display:block;}
-  .viberes{position:absolute;top:102px;left:12px;right:12px;z-index:610;background:rgba(13,11,20,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:11px 13px;display:none;}
+  .viberes{position:absolute;top:102px;left:12px;right:auto;width:calc(54% - 24px);max-width:300px;z-index:610;background:rgba(13,11,20,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:11px 13px;display:none;}
   .viberes.show{display:block;}
   .vr-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
   .vr-emoji{font-size:20px;} .vr-label{font-size:15px;font-weight:900;} .vr-pct{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);}
@@ -52,30 +52,21 @@
   .mapfail{position:absolute;inset:0;z-index:400;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;background:var(--surface);color:var(--muted);font-size:13px;font-weight:600;line-height:1.5;}
   .mapfail.show{display:flex;}
 
-  /* list panel floating on the map — collapsible, small by default */
-  .panel{position:absolute;left:0;right:0;bottom:0;z-index:600;height:14vh;height:14dvh;min-height:104px;
+  /* list panel — narrow strip on the RIGHT, map stays visible on the left */
+  .panel{position:absolute;top:96px;right:0;bottom:0;z-index:600;width:46%;max-width:230px;
     background:rgba(13,11,20,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-    border-top:1px solid var(--line);border-radius:20px 20px 0 0;display:flex;flex-direction:column;
-    padding:6px 12px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -8px 30px rgba(0,0,0,.4);
-    transition:height .28s cubic-bezier(.2,.8,.2,1);}
-  .panel.open{height:62vh;height:62dvh;}
-  .grab{width:40px;height:5px;border-radius:999px;background:#5a5175;margin:1px auto 7px;flex:0 0 auto;cursor:pointer;}
-  .phead{display:flex;align-items:center;gap:12px;padding:0 4px 7px;flex:0 0 auto;font-size:11px;font-weight:800;color:var(--muted);cursor:pointer;}
-  .phead .lg{display:flex;align-items:center;gap:5px;}
-  .phead .d{width:11px;height:11px;border-radius:50%;}
-  .phead .d.y{background:radial-gradient(circle,var(--yay),rgba(37,229,126,0));}
-  .phead .d.b{background:radial-gradient(circle,var(--boo),rgba(255,59,107,0));}
-  .phead .d.s{background:radial-gradient(circle,#ffcf4d,rgba(255,207,77,0));}
-  .phead .post{margin-left:auto;color:#cfc7e6;}
-  .cols{flex:1;display:flex;min-height:0;gap:10px;}
-  .col{flex:1;min-width:0;display:flex;flex-direction:column;}
+    border:1px solid var(--line);border-right:none;border-radius:16px 0 0 16px;
+    display:flex;flex-direction:column;padding:10px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:-6px 0 24px rgba(0,0,0,.35);overflow:hidden;}
+  .ptitle{font-size:12px;font-weight:900;color:var(--ink);padding:0 2px 8px;flex:0 0 auto;}
+  .cols{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;scrollbar-width:none;}
+  .cols::-webkit-scrollbar{display:none;}
+  .col{display:flex;flex-direction:column;flex:0 0 auto;}
   .chead{display:flex;align-items:center;gap:7px;padding:0 2px 6px;flex:0 0 auto;}
   .chead .sym{display:inline-flex;}
   .col.yay .chead .sym{color:var(--yay);} .col.boo .chead .sym{color:var(--boo);}
   .chead .sym svg{width:18px;height:18px;display:block;}
   .chead .t{font-size:15px;font-weight:900;letter-spacing:-.03em;}
-  .list{flex:1;display:flex;flex-direction:column;gap:6px;overflow-y:auto;scrollbar-width:none;}
-  .list::-webkit-scrollbar{display:none;}
+  .list{display:flex;flex-direction:column;gap:5px;}
   .row{position:relative;border-radius:12px;background:rgba(25,20,38,.9);overflow:hidden;display:flex;align-items:center;gap:9px;padding:10px 11px;cursor:pointer;transition:transform .07s;}
   .row:active{transform:scale(.98);}
   .bar{position:absolute;inset:0;width:0;transition:width .55s cubic-bezier(.2,.85,.3,1);}
@@ -135,14 +126,8 @@
 <div class="viberes" id="viberes"></div>
 <div class="mapfail" id="mapfail"></div>
 
-<div class="panel" id="panel">
-  <div class="grab" onclick="togglePanel()"></div>
-  <div class="phead" onclick="togglePanel()">
-    <span class="lg"><span class="d y"></span> loved</span>
-    <span class="lg"><span class="d b"></span> disliked</span>
-    <span class="lg"><span class="d s"></span> sponsored</span>
-    <span class="post" id="panelToggle">tap for top/flop ↑</span>
-  </div>
+<div class="panel">
+  <div class="ptitle">🔥 Trending here</div>
   <div class="cols">
     <div class="col yay">
       <div class="chead"><span class="sym" data-sym="y"></span><span class="t">top 10</span></div>
@@ -244,7 +229,6 @@ function render(side){
     requestAnimationFrame(()=>{row.querySelector('.bar').style.width=(item.n/max*100)+'%';});
   });
 }
-function togglePanel(){const p=document.getElementById('panel');const open=p.classList.toggle('open');document.getElementById('panelToggle').textContent=open?'tap to close ↓':'tap for top/flop ↑';}
 function openRules(){document.getElementById('modal').classList.add('open');}
 function closeRules(){document.getElementById('modal').classList.remove('open');}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeRules();});
