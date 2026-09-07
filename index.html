@@ -13,7 +13,7 @@
     --yay:#25e57e;--yay-dim:rgba(37,229,126,.16);--boo:#ff3b6b;--boo-dim:rgba(255,59,107,.16);}
   *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;}
   html,body{height:100%;}
-  body{background:var(--bg);color:var(--ink);overflow:hidden;display:flex;flex-direction:column;height:100vh;height:100dvh;
+  body{background:radial-gradient(110% 35% at 12% 100%,rgba(37,229,126,.09),transparent 60%),radial-gradient(110% 35% at 88% 100%,rgba(255,59,107,.09),transparent 60%),var(--bg);color:var(--ink);overflow:hidden;display:flex;flex-direction:column;height:100vh;height:100dvh;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;-webkit-font-smoothing:antialiased;}
   .topbar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:13px 16px 10px;}
   .logo{display:flex;align-items:center;gap:8px;}
@@ -335,7 +335,7 @@ setInterval(simTick,6000);
 
 /* ---------- MAP last & isolated: can never take down the rest ---------- */
 const CENTER=[12.9320,100.8850];
-let map=null,liveLayer=null;const livePins=[];const allPins=[];
+let map=null,liveLayer=null;const livePins=[];const allPins=[];let heatLayers=[],sponsorLayer=null;
 function mapFail(msg){const f=document.getElementById('mapfail');f.textContent=msg;f.classList.add('show');}
 function pinIcon(t){return L.divIcon({className:'',iconSize:[26,26],iconAnchor:[6,26],html:'<div class="vibepin" style="background:'+(t==='y'?'#25e57e':'#ff3b6b')+'"><span>'+(t==='y'?'\uD83D\uDE00':'\uD83D\uDE21')+'</span></div>'});}
 function sponsorIcon(){return L.divIcon({className:'',iconSize:[28,28],iconAnchor:[7,28],html:'<div class="vibepin sponpin" style="background:#ffcf4d"><span>\uD83D\uDCE3</span></div>'});}
@@ -420,6 +420,30 @@ function computeVibe(){
     '<div class="vr-meter"><span style="width:'+pct+'%"></span></div>'+
     (top?'<div class="vr-top">🔥 Top: '+esc(top.item.w)+'</div>':'');
 }
+/* ---------- mood + sponsors som följer vyn ---------- */
+function viewSpan(){try{const b=map.getBounds();return b.getNorth()-b.getSouth();}catch(e){return 0.01;}}
+function refreshMood(){
+  if(!map||!L.heatLayer)return;
+  heatLayers.forEach(h=>map.removeLayer(h));heatLayers=[];
+  const c=map.getCenter(),span=viewSpan();
+  const sc=(cx,cy,n,s)=>{const a=[];for(let i=0;i<n;i++)a.push([cx+(Math.random()-.5)*s,cy+(Math.random()-.5)*s,.6+Math.random()*.4]);return a;};
+  let yp=[],bp=[];
+  for(let k=0;k<2;k++){yp=yp.concat(sc(c.lat+(Math.random()-.5)*span*.6,c.lng+(Math.random()-.5)*span*.6,12,span*.18));}
+  for(let k=0;k<2;k++){bp=bp.concat(sc(c.lat+(Math.random()-.5)*span*.6,c.lng+(Math.random()-.5)*span*.6,10,span*.18));}
+  heatLayers.push(L.heatLayer(yp,{radius:46,blur:40,minOpacity:.22,gradient:{0.1:'rgba(37,229,126,0.10)',0.5:'rgba(37,229,126,0.38)',1:'rgba(37,229,126,0.7)'}}).addTo(map));
+  heatLayers.push(L.heatLayer(bp,{radius:46,blur:40,minOpacity:.22,gradient:{0.1:'rgba(255,59,107,0.10)',0.5:'rgba(255,59,107,0.38)',1:'rgba(255,59,107,0.7)'}}).addTo(map));
+}
+const OFFERS=['🍹 Happy hour — 2 for 1!','🛵 Scooter rental 200฿/day','🍔 Free fries w/ burger','💆 Massage 250฿','🎧 Live DJ tonight','🏍️ Bike wash 100฿'];
+function refreshSponsors(){
+  if(!map)return;
+  if(!sponsorLayer)sponsorLayer=L.layerGroup().addTo(map);else sponsorLayer.clearLayers();
+  const c=map.getCenter(),span=viewSpan();
+  for(let i=0;i<2;i++){
+    const la=c.lat+(Math.random()-.5)*span*.6, ln=c.lng+(Math.random()-.5)*span*.6;
+    const w=OFFERS[Math.floor(Math.random()*OFFERS.length)];
+    L.marker([la,ln],{icon:sponsorIcon()}).addTo(sponsorLayer).bindPopup('⭐ SPONSORED<br>'+w);
+  }
+}
 function initMap(){
   if(typeof L==='undefined'){mapFail('Map could not load — check your connection and reopen.');return;}
   try{
@@ -428,22 +452,16 @@ function initMap(){
     const tiles=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
     tiles.addTo(map);
     let warned=false;tiles.on('tileerror',()=>{if(!warned){warned=true;mapFail('Map tiles could not load (offline?). The lists still work.');}});
-    try{
-      const sc=(cx,cy,n,s)=>{const a=[];for(let i=0;i<n;i++)a.push([cx+(Math.random()-.5)*s,cy+(Math.random()-.5)*s,.6+Math.random()*.4]);return a;};
-      if(L.heatLayer){
-        L.heatLayer([].concat(sc(12.9352,100.8790,14,.006),sc(12.9318,100.8802,12,.005)),{radius:46,blur:40,minOpacity:.22,gradient:{0.1:'rgba(37,229,126,0.10)',0.5:'rgba(37,229,126,0.38)',1:'rgba(37,229,126,0.7)'}}).addTo(map);
-        L.heatLayer([].concat(sc(12.9344,100.8816,12,.005),sc(12.9300,100.8796,10,.004)),{radius:46,blur:40,minOpacity:.22,gradient:{0.1:'rgba(255,59,107,0.10)',0.5:'rgba(255,59,107,0.38)',1:'rgba(255,59,107,0.7)'}}).addTo(map);
-      }
-    }catch(e){}
+    try{ refreshMood(); }catch(e){}
     [['y','Old man farting 💨',12.9345,100.8852],['b','Elephant poo 🐘💩',12.9310,100.8862],
      ['y','Monkey stole my condoms 🐒',12.9330,100.8845],['y','Buffalo running 🐃',12.9358,100.8840],
      ['b','Durian bomb 🤢',12.9300,100.8858],['b','Guy peed on the wall',12.9340,100.8872],
      ['y','Drunk tourist face-plant 🍺',12.9322,100.8880],['y','Guy in a mankini 🩲',12.9352,100.8866]]
      .forEach(([t,w,la,ln])=>placeLandPin(la,ln,t,w));
-    /* sponsors (gold) */
-    [['🍹 Happy hour here till 7 — 2 for 1!',12.9340,100.8856],['🛵 Scooter rental 200฿/day',12.9312,100.8848]]
-     .forEach(([w,la,ln])=>{L.marker([la,ln],{icon:sponsorIcon()}).addTo(map).bindPopup('⭐ SPONSORED<br>'+w);});
+    /* sponsors (gold) — follow the view */
+    refreshSponsors();
     liveLayer=L.layerGroup().addTo(map);
+    let moveT=null;map.on('moveend',()=>{clearTimeout(moveT);moveT=setTimeout(()=>{refreshMood();refreshSponsors();},250);});
     map.on('click',e=>{if(vibeMode)placeVibe(e.latlng);});
     const cont=map.getContainer();
     const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
