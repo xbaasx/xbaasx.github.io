@@ -36,6 +36,16 @@
   .vibepin span{transform:rotate(-45deg);font-size:13px;}
   .sponpin{border-color:#8a6d1a!important;box-shadow:0 0 0 4px rgba(255,207,77,.35),0 2px 6px rgba(0,0,0,.5)!important;}
   .legend .lgdot.s{background:radial-gradient(circle,#ffcf4d,rgba(255,207,77,0));}
+  .vibebtn{position:absolute;left:10px;top:10px;z-index:500;background:var(--ink);color:#0d0b14;border:none;border-radius:999px;padding:9px 14px;font-size:13px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.4);}
+  .vibebtn.on{background:#a97bff;color:#fff;}
+  .vibehint{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:500;background:rgba(13,11,20,.85);color:#fff;font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;display:none;pointer-events:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);white-space:nowrap;}
+  .vibehint.show{display:block;}
+  .viberes{position:absolute;left:10px;right:10px;bottom:10px;z-index:501;background:rgba(13,11,20,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:11px 13px;display:none;}
+  .viberes.show{display:block;}
+  .vr-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .vr-emoji{font-size:20px;} .vr-label{font-size:15px;font-weight:900;} .vr-pct{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);}
+  .vr-meter{height:8px;border-radius:999px;background:var(--boo);overflow:hidden;} .vr-meter span{display:block;height:100%;background:var(--yay);transition:width .3s;}
+  .vr-top{margin-top:8px;font-size:12.5px;font-weight:800;color:#e6e1f5;} .vr-txt{font-size:13px;font-weight:700;color:var(--muted);}
   .legend{position:absolute;left:10px;bottom:10px;z-index:500;background:rgba(13,11,20,.82);
     -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:12px;padding:8px 10px;pointer-events:none;}
   .legend .lgtitle{font-size:10px;font-weight:900;margin-bottom:5px;color:var(--ink);}
@@ -125,6 +135,9 @@
     <div class="lgrow"><span class="lgdot s"></span> Sponsored</div>
   </div>
   <div class="mapfail" id="mapfail"></div>
+  <button class="vibebtn" id="vibebtn" onclick="toggleVibe()">◎ Check vibe</button>
+  <div class="vibehint" id="vibehint">Tap the map · pinch to resize</div>
+  <div class="viberes" id="viberes"></div>
 </div>
 
 <div class="banner"><span class="dot"></span> The mood in Pattaya right now <small>· green = yay, red = boo</small></div>
@@ -322,7 +335,7 @@ setInterval(simTick,6000);
 
 /* ---------- MAP last & isolated: can never take down the rest ---------- */
 const CENTER=[12.9320,100.8850];
-let map=null,liveLayer=null;const livePins=[];
+let map=null,liveLayer=null;const livePins=[];const allPins=[];
 function mapFail(msg){const f=document.getElementById('mapfail');f.textContent=msg;f.classList.add('show');}
 function pinIcon(t){return L.divIcon({className:'',iconSize:[26,26],iconAnchor:[6,26],html:'<div class="vibepin" style="background:'+(t==='y'?'#25e57e':'#ff3b6b')+'"><span>'+(t==='y'?'\uD83D\uDE00':'\uD83D\uDE21')+'</span></div>'});}
 function sponsorIcon(){return L.divIcon({className:'',iconSize:[28,28],iconAnchor:[7,28],html:'<div class="vibepin sponpin" style="background:#ffcf4d"><span>\uD83D\uDCE3</span></div>'});}
@@ -337,7 +350,10 @@ function dropPin(p,side,w){
   if(!map||!liveLayer)return;
   const item={id:'L'+Date.now()+Math.floor(Math.random()*1000),w:w,n:1};
   const m=L.marker(p,{icon:pinIcon(side)}).addTo(liveLayer).on('click',()=>openPin(item,side));
-  livePins.push(m); if(livePins.length>12) liveLayer.removeLayer(livePins.shift());
+  const entry={lat:p[0],lng:p[1],side,item};allPins.push(entry);
+  livePins.push({m,entry});
+  if(livePins.length>12){const old=livePins.shift();liveLayer.removeLayer(old.m);const i=allPins.indexOf(old.entry);if(i>=0)allPins.splice(i,1);}
+  if(vibeMode&&vibeCircle)computeVibe();
 }
 /* --- kolla om en punkt är vatten genom att läsa pixelfärgen på kart-rutan (OSM-vatten ≈ #aad3df) --- */
 const tileCache={};
@@ -365,8 +381,44 @@ function placeLandPin(lat,lng,side,w,tries){
   isWaterAt(lat,lng,water=>{
     if(water && tries<8){placeLandPin(lat,lng+0.0016,side,w,tries+1);return;} // nudge east onto land
     const item={id:'s'+Math.floor(Math.random()*1e6),w:w,n:3+Math.floor(Math.random()*9)};
-    if(map)L.marker([lat,lng],{icon:pinIcon(side)}).addTo(map).on('click',()=>openPin(item,side));
+    if(map){L.marker([lat,lng],{icon:pinIcon(side)}).addTo(map).on('click',()=>openPin(item,side));
+      allPins.push({lat,lng,side,item});}
   });
+}
+/* ---------- CHECK VIBE ---------- */
+let vibeMode=false,vibeCircle=null,vibeRadius=300,lastPinch=null;
+function hav(a,b,c,d){const R=6371000,r=Math.PI/180,dphi=(c-a)*r,dl=(d-b)*r;const x=Math.sin(dphi/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dl/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+function toggleVibe(){
+  vibeMode=!vibeMode;
+  document.getElementById('vibebtn').classList.toggle('on',vibeMode);
+  document.getElementById('vibehint').classList.toggle('show',vibeMode);
+  if(map){ if(vibeMode){map.scrollWheelZoom.disable();map.doubleClickZoom.disable();map.touchZoom.disable();}
+           else{map.scrollWheelZoom.enable();map.doubleClickZoom.enable();map.touchZoom.enable();clearVibe();} }
+}
+function clearVibe(){if(vibeCircle&&map){map.removeLayer(vibeCircle);vibeCircle=null;}document.getElementById('viberes').classList.remove('show');const lg=document.querySelector('.legend');if(lg)lg.style.display='';}
+function placeVibe(latlng){
+  if(!map)return;
+  if(!vibeCircle)vibeCircle=L.circle(latlng,{radius:vibeRadius,color:'#a97bff',weight:2,fillColor:'#a97bff',fillOpacity:.12}).addTo(map);
+  else vibeCircle.setLatLng(latlng).setRadius(vibeRadius);
+  computeVibe();
+}
+function computeVibe(){
+  if(!vibeCircle)return;
+  const c=vibeCircle.getLatLng();let y=0,b=0;const inside=[];
+  allPins.forEach(p=>{if(hav(c.lat,c.lng,p.lat,p.lng)<=vibeRadius){if(p.side==='y')y+=p.item.n;else b+=p.item.n;inside.push(p);}});
+  const el=document.getElementById('viberes');el.classList.add('show');
+  const lg=document.querySelector('.legend');if(lg)lg.style.display='none';
+  const tot=y+b;
+  if(!tot){el.innerHTML='<div class="vr-txt">No reactions in this circle yet — try a bigger area</div>';return;}
+  const ratio=y/tot,pct=Math.round(ratio*100);
+  let emoji,label,col;
+  if(ratio>=0.66){emoji='😀';label='Great vibe';col='var(--yay)';}
+  else if(ratio>=0.4){emoji='😐';label='Mixed';col='#ffcf4d';}
+  else{emoji='😡';label='Avoid';col='var(--boo)';}
+  const top=inside.slice().sort((a,z)=>z.item.n-a.item.n)[0];
+  el.innerHTML='<div class="vr-head"><span class="vr-emoji">'+emoji+'</span><span class="vr-label" style="color:'+col+'">'+label+'</span><span class="vr-pct">'+pct+'% yay</span></div>'+
+    '<div class="vr-meter"><span style="width:'+pct+'%"></span></div>'+
+    (top?'<div class="vr-top">🔥 Top: '+esc(top.item.w)+'</div>':'');
 }
 function initMap(){
   if(typeof L==='undefined'){mapFail('Map could not load — check your connection and reopen.');return;}
@@ -392,6 +444,13 @@ function initMap(){
     [['🍹 Happy hour here till 7 — 2 for 1!',12.9340,100.8856],['🛵 Scooter rental 200฿/day',12.9312,100.8848]]
      .forEach(([w,la,ln])=>{L.marker([la,ln],{icon:sponsorIcon()}).addTo(map).bindPopup('⭐ SPONSORED<br>'+w);});
     liveLayer=L.layerGroup().addTo(map);
+    map.on('click',e=>{if(vibeMode)placeVibe(e.latlng);});
+    const cont=map.getContainer();
+    const tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+    cont.addEventListener('touchstart',e=>{if(vibeMode&&vibeCircle&&e.touches.length===2)lastPinch=tdist(e.touches);},{passive:false});
+    cont.addEventListener('touchmove',e=>{if(!vibeMode||!vibeCircle||e.touches.length!==2)return;e.preventDefault();const d=tdist(e.touches);if(lastPinch){vibeRadius=Math.max(50,Math.min(5000,vibeRadius*(d/lastPinch)));vibeCircle.setRadius(vibeRadius);computeVibe();}lastPinch=d;},{passive:false});
+    cont.addEventListener('touchend',e=>{if(e.touches.length<2)lastPinch=null;});
+    cont.addEventListener('wheel',e=>{if(!vibeMode||!vibeCircle)return;e.preventDefault();vibeRadius=Math.max(50,Math.min(5000,vibeRadius*(e.deltaY>0?0.9:1.1)));vibeCircle.setRadius(vibeRadius);computeVibe();},{passive:false});
     setTimeout(()=>map.invalidateSize(),250);
   }catch(e){mapFail('Map could not start — but the lists work.');}
 }
