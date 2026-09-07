@@ -56,8 +56,15 @@
   .panel{position:absolute;top:96px;right:0;bottom:0;z-index:600;width:46%;max-width:230px;
     background:rgba(13,11,20,.72);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
     border:1px solid var(--line);border-right:none;border-radius:16px 0 0 16px;
-    display:flex;flex-direction:column;padding:10px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:-6px 0 24px rgba(0,0,0,.35);overflow:hidden;}
-  .ptitle{font-size:12px;font-weight:900;color:var(--ink);padding:0 2px 8px;flex:0 0 auto;}
+    display:flex;flex-direction:column;padding:10px 10px calc(10px + env(safe-area-inset-bottom));box-shadow:-6px 0 24px rgba(0,0,0,.35);overflow:hidden;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1);}
+  .panel.hidden{transform:translateX(100%);}
+  .ptab{position:absolute;top:96px;right:0;z-index:601;background:var(--ink);color:#0d0b14;border:none;
+    border-radius:12px 0 0 12px;padding:12px 8px;font-size:14px;font-weight:900;cursor:pointer;box-shadow:-3px 2px 10px rgba(0,0,0,.4);
+    transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);writing-mode:vertical-rl;}
+  .ptab.show{transform:translateX(0);}
+  .ptitle{display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:900;color:var(--ink);padding:0 2px 8px;flex:0 0 auto;}
+  .ptitle .x{background:none;border:none;color:var(--muted);font-size:18px;font-weight:800;cursor:pointer;line-height:1;padding:0 2px;}
   .cols{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0;overflow-y:auto;scrollbar-width:none;}
   .cols::-webkit-scrollbar{display:none;}
   .col{display:flex;flex-direction:column;flex:0 0 auto;}
@@ -127,8 +134,9 @@
 <div class="viberes" id="viberes"></div>
 <div class="mapfail" id="mapfail"></div>
 
-<div class="panel">
-  <div class="ptitle">🔥 Trending here</div>
+<button class="ptab" id="ptab" onclick="showPanel(true)">🔥 trending</button>
+<div class="panel" id="panel">
+  <div class="ptitle">🔥 Trending here <button class="x" onclick="showPanel(false)">✕</button></div>
   <div class="cols">
     <div class="col yay">
       <div class="chead"><span class="sym" data-sym="y"></span><span class="t">top 10</span></div>
@@ -231,6 +239,7 @@ function render(side){
     requestAnimationFrame(()=>{row.querySelector('.bar').style.width=(item.n/max*100)+'%';});
   });
 }
+function showPanel(open){document.getElementById('panel').classList.toggle('hidden',!open);document.getElementById('ptab').classList.toggle('show',!open);}
 function openRules(){document.getElementById('modal').classList.add('open');}
 function closeRules(){document.getElementById('modal').classList.remove('open');}
 document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeRules();});
