@@ -117,6 +117,11 @@
   .vbtn.locked{opacity:.3;pointer-events:none;filter:grayscale(1);box-shadow:none;}
   .vmsg{color:var(--muted);font-size:12.5px;margin-bottom:14px;min-height:16px;font-weight:600;}
   .vclose{background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;padding:6px 12px;}
+  .card.spon{text-align:center;max-width:320px;}
+  .card.spon .badge{display:inline-block;background:#ffcf4d;color:#241d00;font-size:11px;font-weight:900;letter-spacing:.06em;padding:5px 12px;border-radius:999px;margin-bottom:14px;}
+  .card.spon .offer{font-size:22px;font-weight:900;line-height:1.25;margin-bottom:12px;}
+  .card.spon .sponsub{color:var(--muted);font-size:12.5px;line-height:1.5;margin-bottom:18px;}
+  .card .ok.gold{background:#ffcf4d;color:#241d00;}
 </style>
 </head>
 <body>
@@ -179,6 +184,13 @@
     <div class="vagree"><span>↗ Agree</span><span>⤵ Disagree</span></div>
     <div class="vmsg" id="voteMsg"></div>
     <button class="vclose" onclick="closeVote()">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="sponModal">
+  <div class="card spon">
+    <div id="sponBody"></div>
+    <button class="ok gold" onclick="closeSponsor()">Close</button>
   </div>
 </div>
 
@@ -364,8 +376,22 @@ function refreshArea(){
 function refreshSponsors(){
   if(!map)return;
   if(!sponsorLayer)sponsorLayer=L.layerGroup().addTo(map);else sponsorLayer.clearLayers();
-  for(let i=0;i<2;i++){const p=randInView();L.marker(p,{icon:sponsorIcon()}).addTo(sponsorLayer).bindPopup('⭐ SPONSORED<br>'+OFFERS[Math.floor(Math.random()*OFFERS.length)]);}
+  for(let i=0;i<2;i++){
+    const p=randInView(),offer=OFFERS[Math.floor(Math.random()*OFFERS.length)],id='sp'+Date.now()+'_'+i+'_'+Math.floor(Math.random()*999);
+    const m=L.marker(p,{icon:sponsorIcon()}).addTo(sponsorLayer);
+    m.on('click',()=>{
+      if(armedPin===id){armedPin=null;openSponsor(offer);return;}
+      armedPin=id;
+      L.popup({offset:[0,-18],closeOnClick:false}).setLatLng(m.getLatLng()).setContent('⭐ <b>Sponsored</b><br>'+esc(offer)+'<br><small style="color:#a79dc4">tap again for details</small>').openOn(map);
+    });
+  }
 }
+function openSponsor(offer){
+  document.getElementById('sponBody').innerHTML='<div class="badge">⭐ SPONSORED</div><div class="offer">'+esc(offer)+'</div><div class="sponsub">A local spot promoted this. Tap the gold pin on the map to find it.</div>';
+  document.getElementById('sponModal').classList.add('open');
+}
+function closeSponsor(){document.getElementById('sponModal').classList.remove('open');}
+document.getElementById('sponModal').addEventListener('click',e=>{if(e.target.id==='sponModal')closeSponsor();});
 
 /* Check vibe */
 let vibeMode=false,vibeCircle=null,vibeRadius=300,lastPinch=null;
