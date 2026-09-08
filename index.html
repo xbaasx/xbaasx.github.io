@@ -42,6 +42,10 @@
   .vibebtn.on{background:#a97bff;color:#fff;}
   .vibehint{position:absolute;top:60px;left:50%;transform:translateX(-50%);z-index:590;background:rgba(13,11,20,.85);color:#fff;font-size:11px;font-weight:700;padding:6px 12px;border-radius:999px;display:none;pointer-events:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);white-space:nowrap;}
   .vibehint.show{display:block;}
+  .vibeslider{position:absolute;bottom:16px;left:12px;z-index:610;display:none;align-items:center;gap:10px;background:rgba(13,11,20,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:10px 14px;max-width:min(62%,290px);}
+  .vibeslider.show{display:flex;}
+  .vibeslider span{font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap;}
+  .vibeslider input{flex:1;min-width:80px;accent-color:#a97bff;}
   .viberes{position:absolute;top:102px;left:12px;right:auto;width:calc(54% - 24px);max-width:300px;z-index:610;background:rgba(13,11,20,.9);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:14px;padding:11px 13px;display:none;}
   .viberes.show{display:block;}
   .vr-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
@@ -132,6 +136,7 @@
 <button class="vibebtn" id="vibebtn" onclick="toggleVibe()">◎ Check vibe</button>
 <div class="vibehint" id="vibehint">Tap the map · pinch to resize</div>
 <div class="viberes" id="viberes"></div>
+<div class="vibeslider" id="vibeslider"><span>Area size</span><input type="range" id="vibeRange" min="80" max="2000" value="300" oninput="setVibeRadius(this.value)"></div>
 <div class="mapfail" id="mapfail"></div>
 
 <button class="ptab" id="ptab" onclick="showPanel(true)">🔥 trending</button>
@@ -220,21 +225,22 @@ function setLang(l){const r=RULES[l];
   ['en','sv','th'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===l));}
 
 /* top/flop lists (like/dislike only) */
-let yay=[{w:'Robban å Willes beteende',n:10},{w:'Kinesiska boxare',n:9},{w:'KristetGS',n:8},{w:'Central fashion show',n:7},{w:'Dinosaur exploring',n:6},{w:'Sang Som off the rocks',n:5},{w:'Kioskes',n:4},{w:'Dubai golf cart adventure',n:3},{w:'DG breaks',n:2},{w:'Smart falang',n:1}];
-let boo=[{w:'Stone table expert',n:10},{w:'Singha shirt',n:9},{w:'Fish with beard',n:8},{w:'Such a robber',n:7},{w:'Cute Indian daeng',n:6},{w:'Dr Helmut',n:5},{w:'Soi6',n:4},{w:'Walking',n:3},{w:'Stupid falang',n:2},{w:'Tao',n:1}];
+const allPins=[];
 const voted=new Set();
 function vkey(side,word){return side+'|'+word.toLowerCase();}
 function esc(s){return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1400);}
 function render(side){
-  const arr=(side==='y'?yay:boo).slice().sort((a,b)=>b.n-a.n).slice(0,10);
+  const agg={};
+  allPins.forEach(p=>{if(p.side!==side)return;const k=p.item.w.toLowerCase();if(!agg[k])agg[k]={w:p.item.w,n:0};agg[k].n+=p.item.n;});
+  const arr=Object.values(agg).sort((a,b)=>b.n-a.n).slice(0,10);
   const max=arr.length?arr[0].n:1;
   const el=document.getElementById(side==='y'?'listY':'listB');el.innerHTML='';
   if(!arr.length){el.innerHTML='<div class="empty">no posts yet</div>';return;}
   arr.forEach((item,i)=>{
     const row=document.createElement('div');row.className='row'+(i===0?' p1':'');
     row.innerHTML='<span class="bar"></span><span class="rank">'+(i+1)+'</span><span class="word2">'+esc(item.w)+'</span><span class="count">'+item.n+'</span>';
-    row.style.cursor='pointer';row.onclick=()=>openVote(side,item.w);
+    row.style.cursor='pointer';row.onclick=()=>flyToWord(side,item.w);
     el.appendChild(row);
     requestAnimationFrame(()=>{row.querySelector('.bar').style.width=(item.n/max*100)+'%';});
   });
@@ -246,20 +252,18 @@ document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='
 
 /* voting (list rows + map pins) */
 let voteRef=null;
-function showVote(item,side,key,isList){voteRef={item,side,key,isList};
+let armedPin=null;
+function showVote(item,side,key){voteRef={item,side,key};
   document.getElementById('voteWord').textContent=item.w;
   document.getElementById('voteCount').textContent=item.n;
   lockUI(voted.has(key));document.getElementById('voteModal').classList.add('open');}
-function openVote(side,word){const arr=side==='y'?yay:boo;const it=arr.find(x=>x.w.toLowerCase()===word.toLowerCase());if(!it)return;showVote(it,side,vkey(side,it.w),true);}
-function openPin(item,side){showVote(item,side,'pin|'+item.id,false);}
+function openPin(item,side){showVote(item,side,'pin|'+item.id);}
 function lockUI(locked){document.getElementById('voteUp').classList.toggle('locked',locked);document.getElementById('voteDown').classList.toggle('locked',locked);document.getElementById('voteMsg').textContent=locked?'you already voted on this':'';}
 function vote(delta){
   if(!voteRef)return;if(voted.has(voteRef.key))return;
-  voteRef.item.n+=delta;voted.add(voteRef.key);
-  if(voteRef.isList && voteRef.item.n<=0){const arr=voteRef.side==='y'?yay:boo;const i=arr.indexOf(voteRef.item);if(i>=0)arr.splice(i,1);render(voteRef.side);closeVote();toast('removed');return;}
-  if(voteRef.item.n<0)voteRef.item.n=0;
+  voteRef.item.n+=delta;if(voteRef.item.n<0)voteRef.item.n=0;voted.add(voteRef.key);
   document.getElementById('voteCount').textContent=voteRef.item.n;lockUI(true);
-  if(voteRef.isList)render(voteRef.side);
+  render('y');render('b');
 }
 function closeVote(){document.getElementById('voteModal').classList.remove('open');voteRef=null;}
 document.getElementById('voteModal').addEventListener('click',e=>{if(e.target.id==='voteModal')closeVote();});
@@ -277,12 +281,31 @@ render('y');render('b');
 
 /* ---------- MAP ---------- */
 const CENTER=[12.9320,100.8850];
-let map=null,liveLayer=null,areaLayer=null,sponsorLayer=null;let heatLayers=[];const livePins=[];const allPins=[];
+let map=null,liveLayer=null,areaLayer=null,sponsorLayer=null;let heatLayers=[];const livePins=[];
 function mapFail(msg){const f=document.getElementById('mapfail');f.textContent=msg;f.classList.add('show');}
 function pinIcon(t){return L.divIcon({className:'',iconSize:[26,26],iconAnchor:[6,26],html:'<div class="vibepin" style="background:'+(t==='y'?'#25e57e':'#ff3b6b')+'"><span>'+(t==='y'?'\uD83D\uDE00':'\uD83D\uDE21')+'</span></div>'});}
 function sponsorIcon(){return L.divIcon({className:'',iconSize:[28,28],iconAnchor:[7,28],html:'<div class="vibepin sponpin" style="background:#ffcf4d"><span>\uD83D\uDCE3</span></div>'});}
 function viewSpan(){try{const b=map.getBounds();return b.getNorth()-b.getSouth();}catch(e){return 0.01;}}
 function randInView(){const c=map.getCenter(),s=viewSpan();return [c.lat+(Math.random()-.5)*s*.7,c.lng+(Math.random()-.5)*s*.7];}
+function attachReaction(m,item,side){
+  m.on('click',()=>{
+    if(armedPin===item.id){armedPin=null;openPin(item,side);return;}
+    armedPin=item.id;
+    L.popup({offset:[0,-18],closeOnClick:false}).setLatLng(m.getLatLng()).setContent('<b>'+(side==='y'?'😀':'😡')+'</b> '+esc(item.w)+'<br><small style="color:#a79dc4">tap again to vote ↗⤵</small>').openOn(map);
+  });
+  return m;
+}
+function flyToWord(side,word){
+  if(!map)return;
+  const c=map.getCenter();
+  const cands=allPins.filter(p=>p.side===side && p.item.w.toLowerCase()===word.toLowerCase());
+  if(!cands.length)return;
+  cands.sort((a,b)=>hav(c.lat,c.lng,a.lat,a.lng)-hav(c.lat,c.lng,b.lat,b.lng));
+  const t=cands[0];
+  map.flyTo([t.lat,t.lng],Math.max(map.getZoom(),16),{duration:.6});
+  L.popup({offset:[0,-18]}).setLatLng([t.lat,t.lng]).setContent('<b>'+(side==='y'?'😀':'😡')+'</b> '+esc(t.item.w)).openOn(map);
+  showPanel(false);
+}
 
 /* water check via tile pixel colour */
 const tileCache={};
@@ -302,9 +325,10 @@ function isWaterAt(lat,lng,cb){try{
 function dropPin(p,side,w){
   if(!map||!liveLayer)return;
   const item={id:'L'+Date.now()+Math.floor(Math.random()*1000),w:w,n:1};
-  const m=L.marker(p,{icon:pinIcon(side)}).addTo(liveLayer).on('click',()=>openPin(item,side));
+  const m=L.marker(p,{icon:pinIcon(side)}).addTo(liveLayer);attachReaction(m,item,side);
   const entry={lat:p[0],lng:p[1],side,item};allPins.push(entry);livePins.push({m,entry});
   if(livePins.length>12){const old=livePins.shift();liveLayer.removeLayer(old.m);const i=allPins.indexOf(old.entry);if(i>=0)allPins.splice(i,1);}
+  render('y');render('b');
   if(vibeMode&&vibeCircle)computeVibe();
 }
 
@@ -324,7 +348,7 @@ function refreshArea(){
       const bank=side==='y'?SIM_Y:SIM_B;
       const item={id:'a'+Math.random().toString(36).slice(2),w:bank[Math.floor(Math.random()*bank.length)],n:2+Math.floor(Math.random()*9)};
       allPins.push({lat:la,lng:ln,side,item,area:true});
-      L.marker([la,ln],{icon:pinIcon(side)}).addTo(areaLayer).on('click',()=>openPin(item,side));
+      attachReaction(L.marker([la,ln],{icon:pinIcon(side)}).addTo(areaLayer),item,side);
       (side==='y'?yPts:bPts).push([la,ln,Math.min(1,item.n/10)]);
       (function(it,sd,a,b){isWaterAt(a,b,water=>{if(water){const wb=sd==='y'?WATER_Y:WATER_B;it.w=wb[Math.floor(Math.random()*wb.length)];}});})(item,side,la,ln);
     }
@@ -334,6 +358,7 @@ function refreshArea(){
     if(yPts.length)heatLayers.push(L.heatLayer(yPts,{radius:52,blur:44,minOpacity:.2,gradient:{0.1:'rgba(37,229,126,0.10)',0.5:'rgba(37,229,126,0.4)',1:'rgba(37,229,126,0.72)'}}).addTo(map));
     if(bPts.length)heatLayers.push(L.heatLayer(bPts,{radius:52,blur:44,minOpacity:.2,gradient:{0.1:'rgba(255,59,107,0.10)',0.5:'rgba(255,59,107,0.4)',1:'rgba(255,59,107,0.72)'}}).addTo(map));
   }
+  render('y');render('b');
   if(vibeMode&&vibeCircle)computeVibe();
 }
 function refreshSponsors(){
@@ -348,7 +373,9 @@ function hav(a,b,c,d){const R=6371000,r=Math.PI/180,dphi=(c-a)*r,dl=(d-b)*r;cons
 function toggleVibe(){vibeMode=!vibeMode;
   document.getElementById('vibebtn').classList.toggle('on',vibeMode);
   document.getElementById('vibehint').classList.toggle('show',vibeMode);
+  document.getElementById('vibeslider').classList.toggle('show',vibeMode);
   if(map){if(vibeMode){map.scrollWheelZoom.disable();map.doubleClickZoom.disable();map.touchZoom.disable();}else{map.scrollWheelZoom.enable();map.doubleClickZoom.enable();map.touchZoom.enable();clearVibe();}}}
+function setVibeRadius(v){vibeRadius=+v;if(vibeCircle){vibeCircle.setRadius(vibeRadius);computeVibe();}}
 function clearVibe(){if(vibeCircle&&map){map.removeLayer(vibeCircle);vibeCircle=null;}document.getElementById('viberes').classList.remove('show');}
 function placeVibe(latlng){if(!map)return;if(!vibeCircle)vibeCircle=L.circle(latlng,{radius:vibeRadius,color:'#a97bff',weight:2,fillColor:'#a97bff',fillOpacity:.12}).addTo(map);else vibeCircle.setLatLng(latlng).setRadius(vibeRadius);computeVibe();}
 function computeVibe(){
@@ -379,9 +406,9 @@ function initMap(){
     map.on('click',e=>{if(vibeMode)placeVibe(e.latlng);});
     const cont=map.getContainer(),tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
     cont.addEventListener('touchstart',e=>{if(vibeMode&&vibeCircle&&e.touches.length===2)lastPinch=tdist(e.touches);},{passive:false});
-    cont.addEventListener('touchmove',e=>{if(!vibeMode||!vibeCircle||e.touches.length!==2)return;e.preventDefault();const d=tdist(e.touches);if(lastPinch){vibeRadius=Math.max(50,Math.min(5000,vibeRadius*(d/lastPinch)));vibeCircle.setRadius(vibeRadius);computeVibe();}lastPinch=d;},{passive:false});
+    cont.addEventListener('touchmove',e=>{if(!vibeMode||!vibeCircle||e.touches.length!==2)return;e.preventDefault();const d=tdist(e.touches);if(lastPinch){vibeRadius=Math.max(80,Math.min(2000,vibeRadius*(d/lastPinch)));vibeCircle.setRadius(vibeRadius);computeVibe();document.getElementById('vibeRange').value=Math.round(vibeRadius);}lastPinch=d;},{passive:false});
     cont.addEventListener('touchend',e=>{if(e.touches.length<2)lastPinch=null;});
-    cont.addEventListener('wheel',e=>{if(!vibeMode||!vibeCircle)return;e.preventDefault();vibeRadius=Math.max(50,Math.min(5000,vibeRadius*(e.deltaY>0?0.9:1.1)));vibeCircle.setRadius(vibeRadius);computeVibe();},{passive:false});
+    cont.addEventListener('wheel',e=>{if(!vibeMode||!vibeCircle)return;e.preventDefault();vibeRadius=Math.max(80,Math.min(2000,vibeRadius*(e.deltaY>0?0.9:1.1)));vibeCircle.setRadius(vibeRadius);computeVibe();document.getElementById('vibeRange').value=Math.round(vibeRadius);},{passive:false});
     setTimeout(()=>map.invalidateSize(),250);
   }catch(e){mapFail('Map could not start — but the lists work.');}
 }
@@ -389,13 +416,11 @@ window.addEventListener('load',initMap);
 
 /* live stream */
 const SIM=true;
-function reaction(side,w){const arr=side==='y'?yay:boo;const bump=2+Math.floor(Math.random()*5);const hit=arr.find(x=>x.w.toLowerCase()===w.toLowerCase());if(hit)hit.n+=bump;else arr.push({w,n:4+Math.floor(Math.random()*6)});render(side);toast((side==='y'?'😀 ':'😡 ')+w);}
 function simTick(){
-  if(!SIM)return;
+  if(!SIM||!map)return;
   const side=Math.random()<0.5?'y':'b';
-  if(!map){const b=side==='y'?SIM_Y:SIM_B;reaction(side,b[Math.floor(Math.random()*b.length)]);return;}
   const p=randInView();
-  isWaterAt(p[0],p[1],water=>{const bank=water?(side==='y'?WATER_Y:WATER_B):(side==='y'?SIM_Y:SIM_B);const w=bank[Math.floor(Math.random()*bank.length)];dropPin(p,side,w);reaction(side,w);});
+  isWaterAt(p[0],p[1],water=>{const bank=water?(side==='y'?WATER_Y:WATER_B):(side==='y'?SIM_Y:SIM_B);const w=bank[Math.floor(Math.random()*bank.length)];dropPin(p,side,w);toast((side==='y'?'😀 ':'😡 ')+w);});
 }
 setInterval(simTick,6000);
 </script>
