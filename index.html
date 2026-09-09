@@ -119,6 +119,7 @@
   .vclose{background:none;border:none;color:var(--muted);font-size:14px;font-weight:700;cursor:pointer;padding:6px 12px;}
   .card.spon{text-align:center;max-width:320px;}
   .card.spon .badge{display:inline-block;background:#ffcf4d;color:#241d00;font-size:11px;font-weight:900;letter-spacing:.06em;padding:5px 12px;border-radius:999px;margin-bottom:14px;}
+  .card.spon .sponname{font-size:13px;font-weight:800;color:#ffcf4d;letter-spacing:.02em;margin-bottom:6px;}
   .card.spon .offer{font-size:22px;font-weight:900;line-height:1.25;margin-bottom:12px;}
   .card.spon .sponsub{color:var(--muted);font-size:12.5px;line-height:1.5;margin-bottom:18px;}
   .card .ok.gold{background:#ffcf4d;color:#241d00;}
@@ -206,12 +207,12 @@ const SIM_B=['Saw a dog shit 💩','Shitty road','Overpriced taxi','Seagull poop
 const WATER_Y=['Huge pike here 🎣','Big shark! 🦈','Huge clown fish 🐠','Dolphins! 🐬','Sea turtle 🐢','Fat grouper','Jumping fish','Crystal clear water'];
 const WATER_B=['Jellyfish swarm 🪼','Trash in the sea','Oil slick','Dead fish 🐟','Murky water','Sea snake 🐍','Sharp coral'];
 const OFFERS=[
-  {t:'🍹 Happy hour — 2 for 1!',b:'Every day 5–7pm. Cold cocktails, cheap smiles. Come thirsty.'},
-  {t:'🛵 Scooter rental 200฿/day',b:'Automatic bikes, helmets included, no deposit drama. Ride the coast.'},
-  {t:'🍔 Free fries with any burger',b:'Show this pin at the counter. Juicy patties, crispy fries, zero regrets.'},
-  {t:'💆 Massage 250฿ / hour',b:'Aircon, real therapists, walk-ins welcome. Melt the day away.'},
-  {t:'🎧 Live DJ tonight',b:'Doors 9pm, no cover before 10. Beach beats till late.'},
-  {t:'🏍️ Bike wash 100฿',b:'Sparkle in 15 min while you grab a coffee next door.'}
+  {name:'Sunset Beach Bar',t:'🍹 Happy hour — 2 for 1!',b:'Every day 5–7pm. Cold cocktails, cheap smiles. Come thirsty.'},
+  {name:'Jomtien Bike Rental',t:'🛵 Scooter rental 200฿/day',b:'Automatic bikes, helmets included, no deposit drama. Ride the coast.'},
+  {name:'Big Bill\u2019s Burgers',t:'🍔 Free fries with any burger',b:'Show this pin at the counter. Juicy patties, crispy fries, zero regrets.'},
+  {name:'Lotus Thai Massage',t:'💆 Massage 250฿ / hour',b:'Aircon, real therapists, walk-ins welcome. Melt the day away.'},
+  {name:'Club Neon',t:'🎧 Live DJ tonight',b:'Doors 9pm, no cover before 10. Beach beats till late.'},
+  {name:'Shine Bike Wash',t:'🏍️ Bike wash 100฿',b:'Sparkle in 15 min while you grab a coffee next door.'}
 ];
 
 /* rules EN/SV/TH */
@@ -389,12 +390,12 @@ function refreshSponsors(){
     m.on('click',()=>{
       if(armedPin===id){armedPin=null;openSponsor(offer);return;}
       armedPin=id;
-      L.popup({offset:[0,-18],closeOnClick:false}).setLatLng(m.getLatLng()).setContent('⭐ <b>Sponsored</b><br>'+esc(offer.t)+'<br><small style="color:#a79dc4">tap again for details</small>').openOn(map);
+      L.popup({offset:[0,-18],closeOnClick:false}).setLatLng(m.getLatLng()).setContent('⭐ <b>'+esc(offer.name)+'</b><br>'+esc(offer.t)+'<br><small style="color:#a79dc4">tap again for details</small>').openOn(map);
     });
   }
 }
 function openSponsor(offer){
-  document.getElementById('sponBody').innerHTML='<div class="badge">⭐ SPONSORED</div><div class="offer">'+esc(offer.t)+'</div><div class="sponsub">'+esc(offer.b)+'</div>';
+  document.getElementById('sponBody').innerHTML='<div class="badge">⭐ SPONSORED</div><div class="sponname">'+esc(offer.name)+'</div><div class="offer">'+esc(offer.t)+'</div><div class="sponsub">'+esc(offer.b)+'</div>';
   document.getElementById('sponModal').classList.add('open');
 }
 function closeSponsor(){document.getElementById('sponModal').classList.remove('open');}
