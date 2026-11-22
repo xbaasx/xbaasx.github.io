@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0d0f13">
+<title>yaybooo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.heat/0.2.0/leaflet-heat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.min.js"></script>
+<style>
+  :root{
+    --bg:#0d0f13;--surface:#14171d;--surface2:#1b1f27;--line:#282d38;
+    --ink:#f4f6f9;--muted:#8b95a3;
+    --yay:#25e57e;--boo:#ff3b52;--gold:#ffc53d;
+    --shadow:0 12px 40px rgba(0,0,0,.5);--shadow-sm:0 4px 16px rgba(0,0,0,.4);
+    --fd:"Fredoka",system-ui,sans-serif;
+    --fu:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;}
+  html,body{height:100%;}
+  body{position:relative;height:100vh;height:100dvh;overflow:hidden;background:var(--bg);color:var(--ink);
+    font-family:var(--fu);-webkit-font-smoothing:antialiased;}
+  #map{position:absolute;inset:0;z-index:0;background:#e9edf2;}
+  .leaflet-container{background:#e9edf2;font-family:var(--fu);}
+  .leaflet-tile-pane{filter:none;}
+  .leaflet-container img.leaflet-tile{mix-blend-mode:normal;}
+  .leaflet-popup-content-wrapper{background:var(--surface);color:var(--ink);border-radius:13px;box-shadow:var(--shadow);border:1px solid var(--line);}
+  .leaflet-popup-tip{background:var(--surface);}
+  .leaflet-popup-content{margin:10px 13px;font-weight:600;font-size:13px;}
+  .leaflet-popup-close-button{color:var(--muted)!important;}
+  .leaflet-control-zoom a{background:rgba(20,23,29,.92)!important;color:var(--ink)!important;border:1px solid var(--line)!important;border-radius:9px!important;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);}
+  .leaflet-control-attribution{background:rgba(20,23,29,.55)!important;color:#6b7280!important;}
+  .leaflet-control-attribution a{color:#8b95a3!important;}
+
+  /* pins (approved — unchanged) */
+  .vibepin{width:25px;height:25px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5);}
+  .vibepin svg{width:13px;height:13px;stroke:#fff;fill:none;}
+  .vibepin span{font-size:13px;line-height:1;}
+  .sponpin{border-color:#fff!important;box-shadow:0 0 0 3px rgba(255,197,61,.55),0 2px 6px rgba(0,0,0,.5)!important;}
+
+  .topbar{position:absolute;top:0;left:0;right:0;z-index:600;display:flex;align-items:center;gap:12px;padding:14px 16px 30px;
+    background:linear-gradient(180deg,rgba(13,15,19,.88),rgba(13,15,19,.55) 46%,rgba(13,15,19,0));pointer-events:none;}
+  .topbar>*{pointer-events:auto;}
+  .logo{display:flex;align-items:center;gap:7px;}
+  .mark{display:inline-flex;align-items:center;gap:0;}
+  .mark .u{color:var(--yay);display:inline-flex;} .mark .d{color:var(--boo);display:inline-flex;}
+  .mark svg{width:22px;height:22px;display:block;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6));}
+  .word{font-family:var(--fu);font-size:25px;font-weight:800;letter-spacing:-.03em;line-height:1;display:inline-flex;filter:drop-shadow(0 1px 3px rgba(0,0,0,.6));}
+  .word .wy{color:#fff;} .word .wb{color:var(--yay);}
+  .tb-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
+  .rules-link{font-size:13px;color:#cfd6df;cursor:pointer;font-weight:600;padding:6px 3px;text-shadow:0 1px 3px rgba(0,0,0,.6);}
+  .dl{font-family:var(--fu);font-size:12.5px;font-weight:700;color:#0d0f13;background:var(--yay);border:none;border-radius:10px;padding:9px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:var(--shadow-sm);}
+  .dl.soon{background:rgba(27,31,39,.92);color:var(--muted);border:1px solid var(--line);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:none;}
+  .dl svg{width:12px;height:12px;}
+  .dl.store{background:rgba(20,23,29,.92);color:#eafff3;border:1px solid rgba(37,229,126,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);box-shadow:0 4px 16px rgba(0,0,0,.4);}
+  .dl.store svg{color:var(--yay);}
+  .dltext{display:none;}
+  @media(min-width:768px){.dltext{display:inline;}}
+
+  /* favourites chip bar + collapsible search */
+  .chipbar{position:absolute;top:56px;left:0;right:0;z-index:605;display:flex;align-items:center;gap:8px;
+    padding:0 12px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;
+    -webkit-mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 18px),transparent 100%);
+            mask-image:linear-gradient(90deg,#000 0,#000 calc(100% - 18px),transparent 100%);}
+  .chipbar::-webkit-scrollbar{display:none;}
+  .chipbar.hide{display:none;}
+  .chip{flex:0 0 auto;display:inline-flex;align-items:center;gap:7px;cursor:pointer;user-select:none;-webkit-user-select:none;
+    background:rgba(20,23,29,.86);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border:1px solid var(--line);border-radius:999px;padding:8px 13px;font-size:13px;font-weight:700;color:var(--ink);
+    box-shadow:var(--shadow-sm);transition:transform .08s,border-color .15s,background .15s;white-space:nowrap;}
+  .chip:active{transform:scale(.94);}
+  .chip .fl{font-size:15px;line-height:1;}
+  .chip.active{border-color:var(--yay);background:rgba(37,229,126,.14);color:#eafff3;box-shadow:0 0 0 1px rgba(37,229,126,.35),var(--shadow-sm);}
+  .chip.searchchip{padding:0;width:38px;height:38px;justify-content:center;
+    background:linear-gradient(150deg,rgba(37,229,126,.20),rgba(20,23,29,.9));border-color:rgba(37,229,126,.4);color:var(--yay);}
+  .chip.searchchip svg{width:17px;height:17px;display:block;}
+  .chip.add{color:var(--muted);border-style:dashed;background:rgba(20,23,29,.5);font-weight:800;}
+
+  .searchbox{position:absolute;top:56px;left:12px;right:12px;z-index:606;display:none;align-items:center;gap:8px;
+    background:rgba(20,23,29,.96);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+    border:1px solid rgba(37,229,126,.4);border-radius:12px;padding:8px 10px;box-shadow:var(--shadow);}
+  .searchbox.show{display:flex;}
+  .searchbox .sicon{display:inline-flex;color:var(--muted);flex:0 0 auto;}
+  .searchbox .sicon svg{width:16px;height:16px;display:block;}
+  .searchbox input{flex:1;min-width:0;background:none;border:none;outline:none;color:var(--ink);font-family:var(--fu);font-size:14px;font-weight:500;}
+  .searchbox input::placeholder{color:var(--muted);}
+  .searchbox .sgo{flex:0 0 auto;background:var(--yay);color:#0d0f13;border:none;border-radius:8px;font-family:var(--fu);font-weight:800;font-size:12.5px;padding:7px 12px;cursor:pointer;}
+  .searchbox .sx{flex:0 0 auto;background:none;border:none;color:var(--muted);font-size:18px;font-weight:700;cursor:pointer;padding:0 4px;line-height:1;}
+  .suggest{position:absolute;top:100px;left:12px;right:12px;z-index:606;display:none;flex-direction:column;background:rgba(16,19,24,.98);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:12px;overflow-y:auto;max-height:56vh;box-shadow:var(--shadow);scrollbar-width:none;}
+  .suggest::-webkit-scrollbar{display:none;}
+  .suggest.show{display:flex;}
+  .sug{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.05);}
+  .sug:last-child{border-bottom:none;}
+  .sug:hover,.sug:active{background:#20252f;}
+  .sug .fl{font-size:16px;line-height:1;flex:0 0 auto;}
+  .sug .snm{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);}
+  .sug .styp{font-size:11px;font-weight:800;color:var(--muted);letter-spacing:.03em;}
+
+  .vibebtn{position:absolute;top:104px;left:12px;z-index:600;background:rgba(20,23,29,.92);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  .vibebtn.on{background:var(--yay);color:#0d0f13;border-color:var(--yay);}
+  .vibehint{position:absolute;top:108px;left:50%;transform:translateX(-50%);z-index:590;background:rgba(13,15,19,.94);color:#fff;font-size:11px;font-weight:600;padding:6px 12px;border-radius:8px;display:none;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-sm);}
+  .vibehint.show{display:block;}
+  .vibeslider{position:absolute;bottom:16px;left:58px;z-index:610;display:none;align-items:center;gap:10px;background:rgba(20,23,29,.95);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;padding:10px 14px;max-width:min(60%,280px);box-shadow:var(--shadow);}
+  .vibeslider.show{display:flex;}
+  .vibeslider span{font-size:11px;font-weight:600;color:var(--muted);white-space:nowrap;}
+  .vibeslider input{flex:1;min-width:80px;accent-color:var(--yay);}
+  .viberes{position:absolute;top:150px;left:12px;right:auto;width:calc(54% - 24px);max-width:300px;z-index:610;background:rgba(20,23,29,.96);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:none;box-shadow:var(--shadow);}
+  .viberes.show{display:block;}
+  .vr-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+  .vr-emoji{font-size:20px;display:inline-flex;} .vr-label{font-family:var(--fu);font-size:15px;font-weight:800;} .vr-pct{margin-left:auto;font-size:12px;font-weight:700;color:var(--muted);}
+  .vr-meter{height:7px;border-radius:999px;background:rgba(255,59,82,.22);overflow:hidden;} .vr-meter span{display:block;height:100%;background:var(--yay);transition:width .3s;}
+  .vr-top{margin-top:8px;font-size:12.5px;font-weight:700;color:var(--ink);} .vr-txt{font-size:13px;font-weight:600;color:var(--muted);}
+
+  .mapfail{position:absolute;inset:0;z-index:400;display:none;align-items:center;justify-content:center;text-align:center;padding:20px;background:var(--surface);color:var(--muted);font-size:13px;font-weight:600;line-height:1.5;}
+  .mapfail.show{display:flex;}
+
+  /* trending strip on the RIGHT — map stays visible on the left */
+  .panel{position:absolute;top:98px;right:0;bottom:0;z-index:600;width:46%;max-width:232px;
+    background:rgba(15,18,23,.9);-webkit-backdrop-filter:blur(20px) saturate(1.2);backdrop-filter:blur(20px) saturate(1.2);
+    border:1px solid var(--line);border-right:none;border-radius:18px 0 0 18px;
+    display:flex;flex-direction:column;padding:14px 11px calc(14px + env(safe-area-inset-bottom));box-shadow:-12px 0 40px rgba(0,0,0,.45);overflow:hidden;
+    transition:transform .28s cubic-bezier(.2,.8,.2,1);}
+  .panel.hidden{transform:translateX(100%);}
+  .ptab{position:absolute;top:98px;right:0;z-index:601;background:var(--yay);color:#0d0f13;border:none;
+    border-radius:11px 0 0 11px;padding:12px 8px;font-size:12px;font-weight:800;cursor:pointer;box-shadow:-4px 2px 14px rgba(0,0,0,.4);
+    transform:translateX(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1);writing-mode:vertical-rl;font-family:var(--fu);letter-spacing:.02em;}
+  .ptab.show{transform:translateX(0);}
+  .ptitle{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:0 2px 12px;flex:0 0 auto;}
+  .ptitle .x{background:none;border:none;color:var(--muted);font-size:18px;font-weight:700;cursor:pointer;line-height:1;padding:0 2px;}
+  .pseg{display:flex;gap:5px;}
+  .segb{background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 9px;font-family:var(--fu);font-size:11.5px;font-weight:800;cursor:pointer;white-space:nowrap;}
+  .segb.active{background:var(--yay);color:#062814;border-color:var(--yay);}
+  .cols{flex:1;display:flex;flex-direction:column;gap:16px;min-height:0;overflow-y:auto;scrollbar-width:none;}
+  .cols::-webkit-scrollbar{display:none;}
+  .col{display:flex;flex-direction:column;flex:0 0 auto;}
+  .chead{display:flex;align-items:center;gap:7px;padding:0 2px 8px;flex:0 0 auto;}
+  .chead .sym{display:inline-flex;}
+  .col.yay .chead .sym{color:var(--yay);} .col.boo .chead .sym{color:var(--boo);}
+  .chead .sym svg{width:18px;height:18px;display:block;}
+  .chead .t{font-family:var(--fu);font-size:13px;font-weight:800;letter-spacing:.02em;color:var(--muted);}
+  .list{display:flex;flex-direction:column;gap:6px;}
+  .row{position:relative;border-radius:11px;background:var(--surface2);border:1px solid rgba(255,255,255,.04);overflow:hidden;display:flex;align-items:center;gap:9px;padding:10px 12px 12px;cursor:pointer;transition:transform .07s,background .12s;}
+  .row:active{transform:scale(.98);}
+  .row:hover{background:#20252f;}
+  .bar{position:absolute;left:0;bottom:0;height:3px;width:0;transition:width .55s cubic-bezier(.2,.85,.3,1);}
+  .col.yay .bar{background:var(--yay);} .col.boo .bar{background:var(--boo);}
+  .rank{position:relative;width:16px;text-align:center;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;flex:0 0 auto;color:var(--muted);}
+  .col.yay .row.p1 .rank{color:var(--yay);} .col.boo .row.p1 .rank{color:var(--boo);}
+  .word2{position:relative;flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:-.01em;color:var(--ink);}
+  .count{position:relative;font-family:var(--fu);font-size:14px;font-weight:800;font-variant-numeric:tabular-nums;flex:0 0 auto;}
+  .col.yay .count{color:var(--yay);} .col.boo .count{color:var(--boo);}
+  .empty{color:var(--muted);font-size:12px;padding:10px 4px;font-weight:600;}
+
+  /* world trending */
+  .world{flex:1;min-height:0;overflow-y:auto;scrollbar-width:none;display:flex;flex-direction:column;gap:6px;}
+  .world::-webkit-scrollbar{display:none;}
+  .whead{font-family:var(--fu);font-size:12px;font-weight:800;letter-spacing:.02em;color:var(--muted);padding:2px 2px 6px;flex:0 0 auto;}
+  .world .whead:not(:first-child){margin-top:14px;}
+  .wrow{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid rgba(255,255,255,.04);border-radius:10px;padding:9px 10px;cursor:pointer;transition:transform .07s,background .12s;}
+  .wrow:active{transform:scale(.98);} .wrow:hover{background:#20252f;}
+  .wrank{font-family:var(--fu);font-size:12px;font-weight:800;color:var(--muted);flex:0 0 auto;min-width:30px;}
+  .wrow.p1 .wrank{color:var(--gold);}
+  .wname{flex:1;min-width:0;font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink);}
+  .wmeter{flex:0 0 42px;height:6px;border-radius:999px;background:rgba(255,255,255,.08);overflow:hidden;}
+  .wmeter span{display:block;height:100%;}
+  .wpct{flex:0 0 auto;font-family:var(--fu);font-size:12px;font-weight:800;color:var(--muted);min-width:34px;text-align:right;}
+
+  .toast{position:fixed;left:50%;bottom:38vh;transform:translateX(-50%);background:rgba(20,23,29,.96);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:9px 16px;font-size:13px;font-weight:700;opacity:0;transition:opacity .25s,bottom .25s;pointer-events:none;z-index:1200;box-shadow:var(--shadow);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  .toast.show{opacity:1;}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.66);display:none;align-items:center;justify-content:center;z-index:1300;padding:20px;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);}
+  .modal.open{display:flex;}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;max-width:440px;width:100%;max-height:84vh;overflow-y:auto;padding:24px 22px 20px;box-shadow:var(--shadow);}
+  .card h2{font-family:var(--fu);font-size:22px;margin-bottom:4px;letter-spacing:-.02em;font-weight:800;}
+  .card .lead{color:var(--muted);font-size:13px;margin-bottom:18px;font-weight:500;}
+  .card ul{list-style:none;display:flex;flex-direction:column;gap:13px;margin-bottom:18px;}
+  .card li{font-size:14px;line-height:1.5;padding-left:17px;position:relative;color:#c3cbd6;}
+  .card li b{color:var(--ink);font-weight:700;}
+  .card li::before{content:"";position:absolute;left:2px;top:8px;width:6px;height:6px;border-radius:50%;background:var(--yay);}
+  .card .fine{color:#6b7280;font-size:11.5px;line-height:1.45;margin-bottom:18px;}
+  .card .ok{font-family:var(--fu);width:100%;background:var(--yay);color:#062814;border:none;border-radius:12px;font-size:16px;font-weight:800;padding:15px;cursor:pointer;}
+  .rtabs{display:flex;gap:6px;margin-bottom:18px;}
+  .rtab{flex:1;background:var(--surface2);border:1px solid var(--line);color:var(--muted);border-radius:9px;padding:9px;font-weight:700;font-size:12px;cursor:pointer;}
+  .rtab.active{background:var(--yay);color:#062814;border-color:var(--yay);}
+  .card.vote{text-align:center;max-width:300px;}
+  .vword{font-family:var(--fu);font-size:20px;font-weight:800;letter-spacing:-.02em;word-break:break-word;color:var(--ink);}
+  .vcount{font-family:var(--fu);font-size:54px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;margin:6px 0 22px;color:var(--ink);}
+  .vbtns{display:flex;gap:18px;justify-content:center;margin-bottom:16px;}
+  .vbtn{width:70px;height:70px;border-radius:18px;border:none;cursor:pointer;color:#fff;font-size:32px;line-height:1;display:flex;align-items:center;justify-content:center;transition:transform .08s,filter .12s;box-shadow:0 4px 0 0 rgba(0,0,0,.4);}
+  .vbtn:active{transform:translateY(3px);box-shadow:0 1px 0 0 rgba(0,0,0,.4);}
+  .vbtn svg{width:34px;height:34px;display:block;}
+  .vbtn.up{background:var(--yay);color:#062814;} .vbtn.down{background:var(--boo);color:#fff;}
+  .vagree{display:flex;gap:18px;justify-content:center;margin:-4px 0 14px;font-size:11px;font-weight:700;color:var(--muted);} .vagree span{width:70px;text-align:center;}
+  .vbtn.locked{opacity:.3;pointer-events:none;filter:grayscale(1);box-shadow:none;}
+  .vmsg{color:var(--muted);font-size:12.5px;margin-bottom:14px;min-height:16px;font-weight:500;}
+  .vclose{background:none;border:none;color:var(--muted);font-size:14px;font-weight:600;cursor:pointer;padding:6px 12px;}
+  .card.spon{text-align:center;max-width:320px;}
+  .card.spon .badge{display:inline-block;background:var(--gold);color:#2a1e00;font-size:11px;font-weight:800;letter-spacing:.05em;padding:5px 12px;border-radius:999px;margin-bottom:14px;}
+  .card.spon .sponname{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:.01em;margin-bottom:6px;}
+  .card.spon .offer{font-family:var(--fu);font-size:22px;font-weight:800;line-height:1.25;margin-bottom:12px;color:var(--ink);}
+  .card.spon .sponsub{color:var(--muted);font-size:12.5px;line-height:1.5;margin-bottom:18px;}
+  .bottomacts{position:absolute;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:620;display:flex;gap:10px;align-items:center;}
+  .actbtn{display:inline-flex;align-items:center;gap:7px;cursor:pointer;white-space:nowrap;border:none;border-radius:999px;font-family:var(--fu);font-size:14px;font-weight:800;padding:12px 18px;box-shadow:var(--shadow);transition:transform .08s,filter .12s;}
+  .actbtn:active{transform:scale(.95);}
+  .actbtn .lblx{display:none;}
+  .actbtn.primary{background:var(--yay);color:#062814;box-shadow:0 6px 20px rgba(37,229,126,.35),var(--shadow);}
+  .actbtn.ghost{background:rgba(20,23,29,.94);color:var(--ink);border:1px solid var(--line);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+
+  /* topbar icon buttons */
+  .iconbtn{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;cursor:pointer;
+    background:rgba(27,31,39,.92);border:1px solid var(--line);color:#cfd6df;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:var(--shadow-sm);}
+  .iconbtn svg{width:16px;height:16px;display:block;}
+  .iconbtn:active{transform:scale(.93);}
+
+  /* dice chip */
+  .chip.dicechip{padding:0;width:38px;height:38px;justify-content:center;font-size:18px;
+    background:linear-gradient(150deg,rgba(255,197,61,.20),rgba(20,23,29,.9));border-color:rgba(255,197,61,.4);}
+
+  /* glow toggle */
+  .glowbtn{position:absolute;top:150px;left:12px;z-index:600;background:rgba(20,23,29,.92);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:9px 13px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+  .glowbtn.on{background:var(--yay);color:#0d0f13;border-color:var(--yay);}
+
+  /* cluster bubble */
+  .vibeclu{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-family:var(--fu);font-weight:800;font-size:13px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.5);}
+  .leaflet-tooltip.livetip{background:rgba(13,15,19,.96);border:none;border-radius:8px;color:#fff;font-family:var(--fu);font-weight:700;font-size:12px;padding:6px 10px;box-shadow:var(--shadow-sm);}
+  .leaflet-tooltip.livetip.ty{border-left:3px solid var(--yay);}
+  .leaflet-tooltip.livetip.tb{border-left:3px solid var(--boo);}
+  .leaflet-tooltip.livetip.leaflet-tooltip-top:before{border-top-color:rgba(13,15,19,.96);}
+
+  /* night mode tint on the map */
+  .leaflet-container.night .leaflet-tile-pane{filter:brightness(.62) saturate(.85) contrast(1.05) hue-rotate(200deg);transition:filter .8s ease;}
+  .leaflet-container .leaflet-tile-pane{transition:filter .8s ease;}
+  .nightbadge{position:absolute;top:150px;left:12px;z-index:590;display:none;}
+
+  /* live counter (inside panel) */
+  .livecount{flex:0 0 auto;display:flex;align-items:center;gap:7px;background:rgba(37,229,126,.1);border:1px solid rgba(37,229,126,.25);border-radius:11px;padding:9px 11px;margin-bottom:14px;}
+  .livecount .lcn{font-family:var(--fu);font-weight:800;font-size:15px;color:var(--yay);font-variant-numeric:tabular-nums;}
+  .livecount .lct{font-size:11px;font-weight:700;color:var(--muted);line-height:1.15;}
+  .livecount .lcdot{width:7px;height:7px;border-radius:50%;background:var(--yay);box-shadow:0 0 0 0 rgba(37,229,126,.6);animation:lcpulse 1.8s infinite;flex:0 0 auto;}
+  @keyframes lcpulse{0%{box-shadow:0 0 0 0 rgba(37,229,126,.5);}70%{box-shadow:0 0 0 7px rgba(37,229,126,0);}100%{box-shadow:0 0 0 0 rgba(37,229,126,0);}}
+
+  .card .ok.gold{background:var(--gold);color:#2a1e00;}
+
+  /* ---- desktop / wide screens: let it breathe ---- */
+  @media (min-width:768px){
+    .word{font-size:27px;}
+    .actbtn .lblx{display:inline;}
+    .searchbox{right:auto;width:min(460px,60vw);}
+    .suggest{right:auto;width:min(460px,60vw);}
+    .chipbar{gap:9px;right:372px;}
+    .chip{font-size:13.5px;padding:9px 15px;}
+    .chip.searchchip{width:40px;height:40px;}
+    .viberes{width:340px;max-width:360px;padding:14px 16px;}
+    .panel{width:340px;max-width:340px;top:64px;bottom:16px;right:16px;border-radius:18px;border-right:1px solid var(--line);}
+    .panel.hidden{transform:translateX(calc(100% + 20px));}
+    .ptab{top:64px;border-radius:11px 0 0 11px;}
+    .row{padding:12px 14px 14px;}
+    .word2{font-size:13.5px;}
+    .wname{font-size:13.5px;}
+    .chead .t{font-size:13.5px;}
+    .segb{font-size:12.5px;padding:7px 12px;}
+  }
+  @media (min-width:1200px){
+    .panel{width:380px;max-width:380px;}
+    .viberes{width:380px;max-width:400px;}
+    .searchbox{width:520px;}
+    .suggest{width:520px;}
+    .chipbar{right:420px;}
+  }
+
+  /* ---- sponsor pin tiers (same size for all; higher tier = subtle glow only) ---- */
+  .sponwrap{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+  .spon-t2 .sponpin{box-shadow:0 0 0 3px rgba(255,197,61,.75),0 0 12px 1px rgba(255,197,61,.45),0 2px 6px rgba(0,0,0,.5)!important;animation:sponglow 2.2s ease-in-out infinite;}
+  .spon-t3 .sponpin{box-shadow:0 0 0 3px #ffd76a,0 0 15px 2px rgba(255,197,61,.6),0 2px 6px rgba(0,0,0,.5)!important;animation:sponglow 2s ease-in-out infinite;}
+  @keyframes sponglow{0%,100%{filter:brightness(1);}50%{filter:brightness(1.22);}}
+
+  /* ---- gold sponsor action button + upsell link ---- */
+  .actbtn.gold{background:var(--gold);color:#2a1e00;box-shadow:0 6px 20px rgba(255,197,61,.4),var(--shadow);}
+  .spon-up{color:var(--gold);font-weight:700;font-size:12.5px;cursor:pointer;margin:-6px 0 16px;}
+
+  /* ---- buy sheet ---- */
+  .buysheet{position:absolute;left:0;right:0;bottom:0;z-index:1250;transform:translateY(115%);
+    transition:transform .34s cubic-bezier(.2,.8,.2,1);
+    background:rgba(16,19,24,.98);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+    border-top:1px solid rgba(255,197,61,.4);border-radius:22px 22px 0 0;box-shadow:0 -18px 55px rgba(0,0,0,.6);
+    padding:10px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;scrollbar-width:none;}
+  .buysheet::-webkit-scrollbar{display:none;}
+  .buysheet.open{transform:translateY(0);}
+  .bs-grab{width:40px;height:4px;border-radius:999px;background:var(--line);margin:4px auto 12px;}
+  .bs-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:4px;}
+  .bs-kick{font-size:11px;font-weight:800;letter-spacing:.06em;color:var(--gold);text-transform:uppercase;margin-bottom:3px;}
+  .bs-title{font-family:var(--fd);font-size:22px;font-weight:700;letter-spacing:-.01em;color:var(--ink);}
+  .bs-title span{color:var(--gold);}
+  .bs-x{background:none;border:none;color:var(--muted);font-size:20px;font-weight:700;cursor:pointer;line-height:1;padding:2px 4px;}
+  .bs-sub{color:var(--muted);font-size:13px;font-weight:500;margin-bottom:14px;line-height:1.4;}
+  .bs-name{width:100%;background:var(--surface2);border:1px solid var(--line);border-radius:11px;color:var(--ink);
+    font-family:var(--fu);font-size:14px;font-weight:600;padding:12px 14px;outline:none;margin-bottom:14px;}
+  .bs-name::placeholder{color:var(--muted);font-weight:500;}
+  .bs-name:focus{border-color:rgba(255,197,61,.6);}
+  .bs-tiers{display:flex;gap:10px;margin-bottom:16px;}
+  .tcard{flex:1;min-width:0;background:var(--surface2);border:1.5px solid var(--line);border-radius:14px;padding:13px 12px;cursor:pointer;
+    transition:border-color .14s,background .14s,transform .08s;}
+  .tcard:active{transform:scale(.98);}
+  .tcard.sel{border-color:var(--gold);background:rgba(255,197,61,.1);box-shadow:0 0 0 1px rgba(255,197,61,.35);}
+  .tc-top{display:flex;align-items:center;gap:6px;margin-bottom:8px;}
+  .tc-emoji{font-size:17px;line-height:1;}
+  .tc-name{font-family:var(--fd);font-size:15px;font-weight:700;color:var(--ink);}
+  .tc-price{font-family:var(--fu);font-size:19px;font-weight:800;color:var(--gold);letter-spacing:-.01em;margin-bottom:3px;}
+  .tc-days{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:9px;}
+  .tc-blurb{font-size:11.5px;font-weight:500;color:#c3cbd6;line-height:1.4;}
+  .bs-go{width:100%;background:var(--gold);color:#2a1e00;border:none;border-radius:13px;font-family:var(--fd);
+    font-size:16px;font-weight:700;padding:15px;cursor:pointer;box-shadow:0 6px 18px rgba(255,197,61,.3);}
+  .bs-go:active{transform:scale(.99);}
+  .bs-fine{color:#6b7280;font-size:11px;text-align:center;margin-top:10px;font-weight:500;}
+  #buyState{text-align:center;padding:14px 6px 8px;}
+  .bs-done{font-size:52px;line-height:1;margin-bottom:8px;}
+  .bs-donetitle{font-family:var(--fd);font-size:24px;font-weight:700;color:var(--ink);margin-bottom:6px;}
+  .bs-donesub{color:var(--gold);font-size:13.5px;font-weight:700;margin-bottom:20px;}
+
+  /* ---- confetti ---- */
+  .confetti{position:fixed;left:0;top:36%;width:100%;height:0;z-index:1400;pointer-events:none;}
+  .confetti span{position:absolute;top:0;width:9px;height:14px;border-radius:2px;opacity:.95;
+    transform:translate(-50%,0);animation-name:conf;animation-timing-function:cubic-bezier(.2,.7,.3,1);animation-fill-mode:forwards;}
+  @keyframes conf{0%{transform:translate(-50%,0) rotate(0);opacity:1;}100%{transform:translate(calc(-50% + var(--x)),62vh) rotate(var(--r));opacity:0;}}
+
+  @media (min-width:768px){
+    .buysheet{left:auto;right:24px;bottom:24px;width:420px;border-radius:20px;border:1px solid rgba(255,197,61,.4);transform:translateX(160%);}
+    .buysheet.open{transform:translateX(0);}
+  }
+
+  /* ---- surprise reel (spin) ---- */
+  .reel{position:fixed;inset:0;z-index:1350;display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+    background:rgba(13,15,19,.72);-webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);}
+  .reel.show{display:flex;}
+  .reel-inner{display:flex;align-items:center;gap:14px;justify-content:center;min-width:250px;
+    font-family:var(--fd);font-weight:700;font-size:30px;color:#fff;
+    background:rgba(20,23,29,.96);border:1px solid var(--line);border-radius:16px;padding:18px 28px;box-shadow:var(--shadow);}
+  .reel-inner .rl-flag{font-size:34px;line-height:1;}
+  .reel-inner .rl-name{white-space:nowrap;}
+  .reel-cap{font-size:12px;font-weight:800;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;}
+
+  /* ---- reveal card ---- */
+  .reveal{position:absolute;left:50%;top:24%;transform:translateX(-50%) scale(.8);opacity:0;z-index:1100;pointer-events:none;
+    width:min(300px,86vw);background:rgba(16,19,24,.97);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border:1px solid var(--line);border-radius:20px;padding:22px 20px 18px;text-align:center;box-shadow:var(--shadow);
+    transition:transform .32s cubic-bezier(.2,1.3,.4,1),opacity .25s;}
+  .reveal.show{opacity:1;transform:translateX(-50%) scale(1);pointer-events:auto;}
+  .reveal.jackpot{border-color:var(--gold);box-shadow:0 0 0 1px rgba(255,197,61,.5),0 0 34px rgba(255,197,61,.35),var(--shadow);}
+  .rv-x{position:absolute;top:9px;right:12px;background:none;border:none;color:var(--muted);font-size:16px;font-weight:700;cursor:pointer;line-height:1;padding:2px 4px;}
+  .rv-flag{font-size:40px;line-height:1;margin-bottom:4px;}
+  .rv-city{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--ink);letter-spacing:-.01em;margin-bottom:6px;}
+  .rv-badge{font-size:13px;font-weight:800;letter-spacing:.02em;margin-bottom:12px;}
+  .rv-pct{font-family:var(--fu);font-size:46px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.03em;line-height:1;margin-bottom:9px;}
+  .rv-meter{height:8px;border-radius:999px;background:rgba(255,255,255,.1);overflow:hidden;margin-bottom:2px;}
+  .rv-meter span{display:block;height:100%;width:0;background:var(--yay);transition:width .1s linear;}
+  .rv-top{font-size:12.5px;font-weight:600;color:var(--muted);min-height:16px;margin:10px 0 14px;}
+  .rv-next{width:100%;background:var(--gold);color:#2a1e00;border:none;border-radius:13px;font-family:var(--fd);font-size:16px;font-weight:700;padding:14px;cursor:pointer;box-shadow:0 6px 18px rgba(255,197,61,.3);}
+  .rv-next:active{transform:scale(.98);}
+
+  /* ---- live world ticker (FOMO) ---- */
+  .ticker{position:absolute;left:12px;bottom:calc(84px + env(safe-area-inset-bottom));z-index:615;max-width:min(56%,320px);
+    display:flex;align-items:center;gap:8px;cursor:pointer;
+    background:rgba(16,19,24,.92);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border:1px solid var(--line);border-radius:999px;padding:8px 14px 8px 11px;box-shadow:var(--shadow-sm);
+    font-size:12.5px;font-weight:600;color:var(--ink);overflow:hidden;white-space:nowrap;}
+  .ticker.hide{display:none;}
+  .ticker .tk-emo,.ticker .tk-flag{flex:none;line-height:1;}
+  .ticker .tk-emo{font-size:14px;}
+  .ticker b{font-weight:800;flex:none;}
+  .ticker .tk-word{color:var(--muted);font-weight:600;overflow:hidden;text-overflow:ellipsis;}
+  .ticker .tk-live{width:7px;height:7px;border-radius:50%;background:var(--yay);flex:none;animation:tkpulse 1.8s infinite;}
+  @keyframes tkpulse{0%{box-shadow:0 0 0 0 rgba(37,229,126,.55);}70%{box-shadow:0 0 0 7px rgba(37,229,126,0);}100%{box-shadow:0 0 0 0 rgba(37,229,126,0);}}
+  .ticker.in{animation:tkin .4s ease;}
+  @keyframes tkin{0%{opacity:.15;transform:translateY(4px);}100%{opacity:1;transform:translateY(0);}}
+
+  /* ---- wall of weird ---- */
+  .chip.weirdchip{padding:0;width:38px;height:38px;justify-content:center;font-size:18px;}
+  .card.wall{max-width:400px;}
+  .wall-hd{font-family:var(--fd);font-size:22px;font-weight:700;color:var(--ink);margin-bottom:3px;}
+  .wall-sub{color:var(--muted);font-size:12.5px;font-weight:500;margin-bottom:14px;line-height:1.4;}
+  .wall-list{display:flex;flex-direction:column;gap:8px;margin-bottom:14px;max-height:52vh;overflow-y:auto;scrollbar-width:none;}
+  .wall-list::-webkit-scrollbar{display:none;}
+  .wrow{display:flex;align-items:center;gap:11px;background:var(--surface2);border:1px solid var(--line);border-radius:13px;padding:11px 13px;cursor:pointer;transition:border-color .12s,transform .08s;}
+  .wrow:active{transform:scale(.99);}
+  .wrow:hover{border-color:var(--gold);}
+  .w-emo,.w-flag{font-size:18px;flex:none;line-height:1;}
+  .w-txt{flex:1;min-width:0;}
+  .w-word{font-size:14px;font-weight:700;color:var(--ink);line-height:1.3;}
+  .w-city{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:2px;}
+  .w-go{color:var(--muted);font-weight:800;flex:none;}
+  .wall-more{width:100%;background:var(--surface2);color:var(--ink);border:1px solid var(--line);border-radius:12px;font-family:var(--fu);font-size:14px;font-weight:800;padding:13px;cursor:pointer;margin-bottom:10px;}
+  .wall-more:active{transform:scale(.99);}
+
+  /* ================= MOBILE LAYOUT (<768px) ================= */
+  @media (max-width:767px){
+    /* touch = pinch to zoom; drop the buttons to free the bottom-left */
+    .leaflet-control-zoom{display:none!important;}
+
+    /* place actions: compact pills, one tidy centered row */
+    .bottomacts{gap:8px;bottom:calc(14px + env(safe-area-inset-bottom));}
+    .actbtn{padding:11px 15px;font-size:13px;}
+
+    /* live ticker gets its own line just above the actions */
+    .ticker{left:12px;bottom:calc(66px + env(safe-area-inset-bottom));max-width:calc(100% - 24px);}
+
+    /* trending → on-demand bottom sheet; map stays clear by default */
+    .panel{top:auto;left:0;right:0;bottom:0;width:100%;max-width:none;height:auto;max-height:74vh;
+      transform:translateY(0);z-index:1150;overflow-y:auto;
+      border:1px solid var(--line);border-bottom:none;border-radius:20px 20px 0 0;
+      box-shadow:0 -18px 55px rgba(0,0,0,.6);transition:transform .32s cubic-bezier(.2,.8,.2,1);
+      padding-bottom:calc(16px + env(safe-area-inset-bottom));}
+    .panel.hidden{transform:translateY(100%);}
+    /* opener pill, thumb-height on the right edge */
+    .ptab{top:auto;bottom:calc(120px + env(safe-area-inset-bottom));right:0;border-radius:11px 0 0 11px;padding:11px 13px;font-size:13px;}
+  }
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div class="topbar">
+  <div class="logo">
+    <span class="mark"><span class="u" data-sym="y"></span><span class="d" data-sym="b"></span></span>
+    <span class="word"><span class="wy">yay</span><span class="wb">booo</span></span>
+  </div>
+  <div class="tb-right">
+    <span class="rules-link" onclick="openRules()">Rules</span>
+    <button class="dl" id="dlBtn"></button>
+  </div>
+</div>
+
+<div class="chipbar" id="chipbar"></div>
+<div class="searchbox" id="searchbox">
+  <span class="sicon" id="sicon"></span>
+  <input id="searchInput" type="text" placeholder="Search a city, place or country…" autocomplete="off" enterkeyhint="search">
+  <button class="sgo" id="searchGo">Go</button>
+  <button class="sx" id="searchX">&#10005;</button>
+</div>
+<div class="suggest" id="suggest"></div>
+
+<button class="vibebtn" id="vibebtn" onclick="toggleVibe()">&#9678; Check vibe</button>
+<div class="vibehint" id="vibehint">Tap the map &middot; scroll or pinch to resize</div>
+<div class="viberes" id="viberes"></div>
+<div class="vibeslider" id="vibeslider"><span>Area size</span><input type="range" id="vibeRange" min="80" max="6000" value="400" oninput="setVibeRadius(this.value)"></div>
+<div class="mapfail" id="mapfail"></div>
+
+<button class="ptab" id="ptab" onclick="showPanel(true)">📊 Trending</button>
+<div class="bottomacts" id="bottomacts">
+  <button class="actbtn primary" id="pinbtn" onclick="addFav()">📍 Pin<span class="lblx"> this place</span></button>
+  <button class="actbtn gold" id="sponBtn" onclick="openBuy()">📣 Sponsor<span class="lblx"> spot</span></button>
+  <button class="actbtn ghost" id="shareBtn" onclick="shareVibe()">✨ Share<span class="lblx"> vibe</span></button>
+</div>
+<button class="glowbtn" id="glowbtn" onclick="toggleGlow()">✨ Glow</button>
+<div class="panel" id="panel">
+  <div class="ptitle">
+    <div class="pseg">
+      <button class="segb active" id="seg-here" onclick="setScope('here')">Here</button>
+      <button class="segb" id="seg-world" onclick="setScope('world')">&#127758; World</button>
+      <button class="segb" id="seg-countries" onclick="setScope('countries')">&#127942;</button>
+    </div>
+    <button class="x" onclick="showPanel(false)">&#10005;</button>
+  </div>
+  <div class="cols" id="colsHere">
+    <div class="livecount" id="livecount"></div>
+    <div class="col yay">
+      <div class="chead"><span class="sym" data-sym="y"></span><span class="t">top 10</span></div>
+      <div class="list" id="listY"></div>
+    </div>
+    <div class="col boo">
+      <div class="chead"><span class="sym" data-sym="b"></span><span class="t">flop 10</span></div>
+      <div class="list" id="listB"></div>
+    </div>
+  </div>
+  <div class="world" id="colsWorld" style="display:none"></div>
+  <div class="world" id="colsCountries" style="display:none"></div>
+</div>
+
+<div class="buysheet" id="buysheet">
+  <div class="bs-grab"></div>
+  <div id="buyMain">
+    <div class="bs-head">
+      <div>
+        <div class="bs-kick">📣 Sponsor</div>
+        <div class="bs-title">Own <span id="buyPlace">this spot</span></div>
+      </div>
+      <button class="bs-x" onclick="closeBuy()">&#10005;</button>
+    </div>
+    <div class="bs-sub">Slap your pin on the map. Pan to aim it, then pick a tier.</div>
+    <input class="bs-name" id="buyName" type="text" maxlength="22" placeholder="Your bar · shop · event" autocomplete="off">
+    <div class="bs-tiers" id="buyTiers"></div>
+    <button class="bs-go" id="buyGo" onclick="confirmBuy()">Go live</button>
+    <div class="bs-fine">Pins stay small — a giant one wrecks the map. Want one anyway? DM me privately, it'll cost you. · Demo, no real charge.</div>
+  </div>
+  <div id="buyState" style="display:none">
+    <div class="bs-done">🎉</div>
+    <div class="bs-donetitle">You're live!</div>
+    <div class="bs-donesub" id="buyDoneSub"></div>
+    <button class="bs-go" onclick="closeBuy()">Done</button>
+  </div>
+</div>
+
+<div class="ticker hide" id="ticker" onclick="tickerTap()"></div>
+
+<div class="reel" id="reel"><div class="reel-inner" id="reelInner"></div><div class="reel-cap">rolling…</div></div>
+<div class="reveal" id="reveal">
+  <button class="rv-x" onclick="closeReveal()">&#10005;</button>
+  <div class="rv-flag" id="rvFlag">🏙️</div>
+  <div class="rv-city" id="rvCity">—</div>
+  <div class="rv-badge" id="rvBadge">—</div>
+  <div class="rv-pct" id="rvPct">0%</div>
+  <div class="rv-meter"><span id="rvBar"></span></div>
+  <div class="rv-top" id="rvTop"></div>
+  <button class="rv-next" onclick="surprise()">🎲 Next place</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal" id="modal">
+  <div class="card">
+    <div class="rtabs">
+      <button class="rtab active" id="tab-en" onclick="setLang('en')">EN</button>
+      <button class="rtab" id="tab-sv" onclick="setLang('sv')">SV</button>
+      <button class="rtab" id="tab-th" onclick="setLang('th')">TH</button>
+    </div>
+    <div id="rbody"></div>
+    <button class="ok" id="rok" onclick="closeRules()">Got it</button>
+  </div>
+</div>
+
+<div class="modal" id="voteModal">
+  <div class="card vote">
+    <div class="vword" id="voteWord"></div>
+    <div class="vcount" id="voteCount">0</div>
+    <div class="vbtns">
+      <button class="vbtn up" id="voteUp" onclick="vote(1)"></button>
+      <button class="vbtn down" id="voteDown" onclick="vote(-1)"></button>
+    </div>
+    <div class="vagree"><span>&#8599; Agree</span><span>&#10549; Disagree</span></div>
+    <div class="vmsg" id="voteMsg"></div>
+    <button class="vclose" onclick="closeVote()">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="sponModal">
+  <div class="card spon">
+    <div id="sponBody"></div>
+    <button class="ok gold" onclick="closeSponsor()">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="wallModal">
+  <div class="card wall">
+    <div class="wall-hd">🤪 Wall of weird</div>
+    <div class="wall-sub">The grossest, dumbest, most cursed vibes on Earth right now. Tap one to teleport there.</div>
+    <div class="wall-list" id="wallList"></div>
+    <button class="wall-more" onclick="renderWall()">🔀 More weird</button>
+    <button class="vclose" onclick="closeWall()">Close</button>
+  </div>
+</div>
+
+<div class="modal" id="shareModal">
+  <div class="card" style="max-width:360px;text-align:center;">
+    <img id="shareImg" alt="vibe card" style="width:100%;border-radius:14px;display:block;margin-bottom:14px;background:#0d0f13;">
+    <button class="ok" id="shareDo">Share / Save</button>
+    <button class="vclose" onclick="closeShare()">Close</button>
+  </div>
+</div>
+
+<script>
+const PLAY_URL='';
+const STADIA_KEY='64eaf35e-ef66-412d-9a1c-2329982f6454';
+const SVG_YAY=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="18" x2="17.5" y2="6.5"/><polyline points="9 6.5 17.5 6.5 17.5 15"/></svg>`;
+const SVG_BOO=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5 C 9 6.5, 14.5 8.5, 16 16"/><polyline points="11.5 13.5 16 18 20.5 13.5"/></svg>`;
+const SVG_PLAY=`<svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 3.5 L20 12 L4 20.5 Z"/></svg>`;
+const SVG_SEARCH=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><line x1="16.5" y1="16.5" x2="21" y2="21"/></svg>`;
+const SVG_SHARE=`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/><line x1="8.2" y1="10.8" x2="15.8" y2="6.2"/><line x1="8.2" y1="13.2" x2="15.8" y2="17.8"/></svg>`;
+
+/* ---------- vibe banks, per country ---------- */
+/* generic water reactions apply everywhere */
+const WATER_Y=['Huge pike here 🎣','Big shark! 🦈','Huge clown fish 🐠','Dolphins! 🐬','Sea turtle 🐢','Fat grouper','Jumping fish','Crystal clear water','Perfect snorkel spot'];
+const WATER_B=['Jellyfish swarm 🪼','Trash in the sea','Oil slick','Dead fish 🐟','Murky water','Sea snake 🐍','Sharp coral','Sewage smell 🤢'];
+
+const BANKS={
+  TH:{y:['Cheap Chang beer 🍺','Best pad thai','Sunset over the gulf 🔥','Live band killing it','Street food win','Mango sticky rice','Night market buzz','Cheap massage 💆','A hot chick passed 😏'],
+      b:['Saw a dog shit 💩','Overpriced taxi','Durian bomb 🤢','Traffic chaos','Elephant poo 🐘💩','Sunburned tourist','Pushy tout','Warm beer','Monkey stole my snacks 🐒']},
+  SE:{y:['Fika break ☕🍪','Midnight sun still up','Cinnamon bun heaven','Lake swim 🏊','Crayfish party 🦞','Cozy bar, no queue','Perfect summer day','Free clean tap water'],
+      b:['Snus spit everywhere','Systembolaget closed again','Rain, obviously ☔','12€ for one beer 💸','Bus never showed','Elk in the road 🫎','Freezing wind','Awkward silence']},
+  FI:{y:['Sauna then lake 🧖','Best rye bread','Northern lights! 🌌','Quiet forest walk','Salmiakki hit 🖤','Fresh berries everywhere','Ice-swim buzz 🥶','Total peace and calm'],
+      b:['Mosquito army 🦟','Silence too loud','Minus 25 outside 🥶','Bus stop, no bus','Overpriced beer','Slipped on the ice','Endless winter dark','Reindeer traffic jam 🦌']},
+  HR:{y:['Insane blue sea 🌊','Fresh grilled fish','Old town glow-up','Cheap local wine 🍷','Cliff jump spot','Sunset from the walls','Best gelato','Hidden beach cove'],
+      b:['Tourist prices 💸','Cruise-ship swarm','Nowhere to park','Sea urchin in my foot 🦔','Pay-for-everything beach','Way too crowded','Pushy restaurant guy','Slippery rocks']},
+  PE:{y:['Ceviche perfection 🐟','Pisco sour hit 🍸','Killer anticucho skewer','Ocean-cliff view','Best lomo saltado','Cheap fresh juice','Surf was firing 🏄','Old town charm'],
+      b:['Gnarly traffic','Sketchy taxi','Grey sky all day','Pickpocket vibes','Street dog pack 🐕','Overpriced tour','Altitude headache','Car alarm all night']},
+  CN:{y:['Insane dumplings 🥟','Street BBQ skewers','Neon skyline 🌃','Bullet train smooth','Best hotpot 🌶️','Cheap bike share','Hidden tea house','Night market chaos (good)'],
+      b:['Smog today 😷','Human traffic jam','Spit on the pavement','No maps, no Google','Squat-toilet horror','Only scalding tap water','Scooter nearly got me','Endless queue']},
+  TR:{y:['Best kebab ever 🥙','Chai on every corner ☕','Grand bazaar buzz','Baklava heaven','Bosphorus view 🌅','Fresh warm simit','Hammam then tea 🧖','Sunset call to prayer'],
+      b:['Carpet-seller ambush','Taxi meter "broken"','Way too crowded','Traffic madness','Overpriced tourist trap','Pushy waiter','Sketchy money change','Cat stole my food 🐈']},
+  JP:{y:['Best ramen slurp 🍜','Vending-machine magic','Cherry blossoms 🌸','Konbini at 3am','Spotless streets','Onsen bliss ♨️','Sushi off the belt','Quiet and polite'],
+      b:['Rush-hour crush 🚋','No trash cans anywhere','Cash only, ugh','Tiny hotel room','Drunk suit passed out','Queue for everything','Confusing station maze','Slurp-shame stares']},
+  ES:{y:['Late-night tapas 🍤','Sangria in the sun 🍷','Beach till sunset','Cheap vermouth','Flamenco fire 💃','Best jamón','Siesta done right','Plaza buzz at midnight'],
+      b:['Everything shut (siesta)','Pickpocket alley','Way too hot 🥵','Loud till 4am','Tourist-trap paella','Seagull stole my food 🐦','Nothing open early','Cig smoke everywhere']},
+  IT:{y:['Real Napoli pizza 🍕','Espresso standing up ☕','Gelato win 🍦','Sunset piazza vibe','Cheap house wine','Best carbonara','Vespa cool 🛵','Golden hour on the canal'],
+      b:['Coperto scam 💸','Pigeon poop bomb 🐦💩','Overpriced tourist menu','Chaos crossing the road','Cig butts everywhere','Way too crowded','Taxi "no meter"','Queue for the loo']},
+  GR:{y:['Sunset over the sea 🌅','Fresh souvlaki','Blue-and-white postcard','Cheap ouzo 🥃','Island cat cuddle 🐈','Best feta salad','Warm sea swim 🌊','Rooftop taverna buzz'],
+      b:['Ferry delayed again ⛴️','Tourist-trap prices','Scooter chaos','Way too crowded','Sunburn city 🥵','Cig smoke everywhere','Slippery marble steps','Wasp at lunch 🐝']},
+  GB:{y:['Proper Sunday roast','Pint in the beer garden 🍺','Sunny day (rare!) ☀️','Best curry house','Cozy pub fireplace','Chippy tea 🐟🍟','Free museum win','Busker actually slaps 🎸'],
+      b:['Rain, again ☔','7£ pint 💸','Seagull stole my chips 🐦','Night-bus horror','Everything shut by 5','Sticky pub carpet','Rail strike again 🚆','Vom on the pavement 🤮']},
+  US:{y:['Killer burger 🍔','Rooftop bar view 🌆','Free refills forever','Best BBQ brisket','Dive-bar live band 🎸','Cheap tacos 🌮','Perfect beach day','Food-truck win'],
+      b:['Tip 25%?? 💸','Sketchy subway smell','Traffic hell 🚗','Portion coma 😵','Car alarm all night','Everything by car only','Rat on the platform 🐀','$8 water bottle']},
+  AE:{y:['Insane skyline 🌇','Best shawarma 🥙','Mall aquarium wow','Desert sunset 🐪','Rooftop pool vibe','Gold souk sparkle ✨','Fresh mango juice','Spotless everything'],
+      b:['48°C outside 🥵','Costs a fortune 💸','Sheikh Zayed traffic','Fake-smile tourist trap','Mall parking maze','Sand in everything','Endless construction 🏗️','No beer outside hotels']},
+  IN:{y:['Best street chaat 🌶️','Chai-stall gold ☕','Insane spice thali','Temple bells at dawn 🛕','Cheap fresh naan','Rooftop sunset view','Colour everywhere 🎨','Auto-rickshaw thrill 🛺'],
+      b:['Horn madness 📢','Cow in the road 🐄','Tourist-price scam','Total gridlock','Sketchy stomach 🤢','Trash-pile stink','Power cut again','Aggressive touts']},
+  DEFAULT:{y:['Great sunset 🌅','Cheap cold beer 🍺','Best street food','Killer live band 🎸','Perfect beach day 🌊','Wifi actually works','Cozy bar, no queue','Great coffee ☕'],
+           b:['Saw a dog shit 💩','Overpriced everything 💸','Traffic chaos','Way too crowded','Rain ruined it ☔','Long queue','Sketchy smell','Rude waiter']}
+};
+
+/* alpha-3 (from geocoder) -> alpha-2 (bank key) */
+const A3={THA:'TH',SWE:'SE',FIN:'FI',HRV:'HR',PER:'PE',CHN:'CN',TUR:'TR',JPN:'JP',ESP:'ES',ITA:'IT',GRC:'GR',GBR:'GB',USA:'US',ARE:'AE',IND:'IN'};
+function alpha2(code){if(!code)return '';code=(''+code).toUpperCase();if(code.length===2)return code;return A3[code]||'';}
+
+/* tiny built-in gazetteer so the obvious searches are instant + reliable */
+function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z]/g,'');}
+const GAZ={
+  pattaya:{lat:12.9320,lng:100.8850,cc:'TH',label:'Pattaya'},
+  bangkok:{lat:13.7563,lng:100.5018,cc:'TH',label:'Bangkok'},
+  phuket:{lat:7.8804,lng:98.3923,cc:'TH',label:'Phuket'},
+  ankara:{lat:39.9334,lng:32.8597,cc:'TR',label:'Ankara'},
+  istanbul:{lat:41.0082,lng:28.9784,cc:'TR',label:'Istanbul'},
+  vaxjo:{lat:56.8777,lng:14.8091,cc:'SE',label:'Växjö'},
+  stockholm:{lat:59.3293,lng:18.0686,cc:'SE',label:'Stockholm'},
+  goteborg:{lat:57.7089,lng:11.9746,cc:'SE',label:'Göteborg'},
+  gothenburg:{lat:57.7089,lng:11.9746,cc:'SE',label:'Gothenburg'},
+  malmo:{lat:55.6050,lng:13.0038,cc:'SE',label:'Malmö'},
+  dubrovnik:{lat:42.6507,lng:18.0944,cc:'HR',label:'Dubrovnik'},
+  split:{lat:43.5081,lng:16.4402,cc:'HR',label:'Split'},
+  zagreb:{lat:45.8150,lng:15.9819,cc:'HR',label:'Zagreb'},
+  lima:{lat:-12.0464,lng:-77.0428,cc:'PE',label:'Lima'},
+  cusco:{lat:-13.5319,lng:-71.9675,cc:'PE',label:'Cusco'},
+  tampere:{lat:61.4978,lng:23.7610,cc:'FI',label:'Tampere'},
+  tammerfors:{lat:61.4978,lng:23.7610,cc:'FI',label:'Tampere'},
+  helsinki:{lat:60.1699,lng:24.9384,cc:'FI',label:'Helsinki'},
+  helsingfors:{lat:60.1699,lng:24.9384,cc:'FI',label:'Helsinki'},
+  beijing:{lat:39.9042,lng:116.4074,cc:'CN',label:'Beijing'},
+  shanghai:{lat:31.2304,lng:121.4737,cc:'CN',label:'Shanghai'},
+  tokyo:{lat:35.6762,lng:139.6503,cc:'JP',label:'Tokyo'},
+  osaka:{lat:34.6937,lng:135.5023,cc:'JP',label:'Osaka'},
+  madrid:{lat:40.4168,lng:-3.7038,cc:'ES',label:'Madrid'},
+  barcelona:{lat:41.3874,lng:2.1686,cc:'ES',label:'Barcelona'},
+  rome:{lat:41.9028,lng:12.4964,cc:'IT',label:'Rome'},
+  roma:{lat:41.9028,lng:12.4964,cc:'IT',label:'Roma'},
+  milan:{lat:45.4642,lng:9.1900,cc:'IT',label:'Milan'},
+  athens:{lat:37.9838,lng:23.7275,cc:'GR',label:'Athens'},
+  london:{lat:51.5074,lng:-0.1278,cc:'GB',label:'London'},
+  newyork:{lat:40.7128,lng:-74.0060,cc:'US',label:'New York'},
+  losangeles:{lat:34.0522,lng:-118.2437,cc:'US',label:'Los Angeles'},
+  miami:{lat:25.7617,lng:-80.1918,cc:'US',label:'Miami'},
+  dubai:{lat:25.2048,lng:55.2708,cc:'AE',label:'Dubai'},
+  abudhabi:{lat:24.4539,lng:54.3773,cc:'AE',label:'Abu Dhabi'},
+  mumbai:{lat:19.0760,lng:72.8777,cc:'IN',label:'Mumbai'},
+  delhi:{lat:28.6139,lng:77.2090,cc:'IN',label:'Delhi'},
+  paris:{lat:48.8566,lng:2.3522,cc:'FR',label:'Paris'},
+  berlin:{lat:52.5200,lng:13.4050,cc:'DE',label:'Berlin'},
+  sydney:{lat:-33.8688,lng:151.2093,cc:'AU',label:'Sydney'}
+};
+
+/* world trending pool */
+const WORLD_CITIES=[
+  {name:'Pattaya',cc:'TH',lat:12.9320,lng:100.8850},
+  {name:'Bangkok',cc:'TH',lat:13.7563,lng:100.5018},
+  {name:'Tokyo',cc:'JP',lat:35.6762,lng:139.6503},
+  {name:'Barcelona',cc:'ES',lat:41.3874,lng:2.1686},
+  {name:'Split',cc:'HR',lat:43.5081,lng:16.4402},
+  {name:'Lima',cc:'PE',lat:-12.0464,lng:-77.0428},
+  {name:'Istanbul',cc:'TR',lat:41.0082,lng:28.9784},
+  {name:'Stockholm',cc:'SE',lat:59.3293,lng:18.0686},
+  {name:'Dubai',cc:'AE',lat:25.2048,lng:55.2708},
+  {name:'Athens',cc:'GR',lat:37.9838,lng:23.7275},
+  {name:'Beijing',cc:'CN',lat:39.9042,lng:116.4074},
+  {name:'Helsinki',cc:'FI',lat:60.1699,lng:24.9384},
+  {name:'London',cc:'GB',lat:51.5074,lng:-0.1278},
+  {name:'Rome',cc:'IT',lat:41.9028,lng:12.4964}
+];
+const COUNTRIES=[
+  {cc:'TH',name:'Thailand',lat:13.7563,lng:100.5018},
+  {cc:'SE',name:'Sweden',lat:59.3293,lng:18.0686},
+  {cc:'NO',name:'Norway',lat:59.9139,lng:10.7522},
+  {cc:'FI',name:'Finland',lat:60.1699,lng:24.9384},
+  {cc:'HR',name:'Croatia',lat:45.8150,lng:15.9819},
+  {cc:'PE',name:'Peru',lat:-12.0464,lng:-77.0428},
+  {cc:'CN',name:'China',lat:39.9042,lng:116.4074},
+  {cc:'TR',name:'Turkey',lat:41.0082,lng:28.9784},
+  {cc:'JP',name:'Japan',lat:35.6762,lng:139.6503},
+  {cc:'ES',name:'Spain',lat:40.4168,lng:-3.7038},
+  {cc:'IT',name:'Italy',lat:41.9028,lng:12.4964},
+  {cc:'GR',name:'Greece',lat:37.9838,lng:23.7275},
+  {cc:'GB',name:'United Kingdom',lat:51.5074,lng:-0.1278},
+  {cc:'US',name:'United States',lat:40.7128,lng:-74.0060},
+  {cc:'AE',name:'UAE',lat:25.2048,lng:55.2708},
+  {cc:'IN',name:'India',lat:19.0760,lng:72.8777}
+];
+/* big pool of real, populated cities so Surprise is truly random (and every landing gets seeded vibes) */
+const RANDOM_CITIES=[
+  {name:'Ulaanbaatar',cc:'MN',lat:47.8864,lng:106.9057},{name:'Irkutsk',cc:'RU',lat:52.2870,lng:104.3050},
+  {name:'Reykjavík',cc:'IS',lat:64.1466,lng:-21.9426},{name:'Cape Town',cc:'ZA',lat:-33.9249,lng:18.4241},
+  {name:'Marrakech',cc:'MA',lat:31.6295,lng:-7.9811},{name:'Cairo',cc:'EG',lat:30.0444,lng:31.2357},
+  {name:'Nairobi',cc:'KE',lat:-1.2921,lng:36.8219},{name:'Lagos',cc:'NG',lat:6.5244,lng:3.3792},
+  {name:'Buenos Aires',cc:'AR',lat:-34.6037,lng:-58.3816},{name:'Rio de Janeiro',cc:'BR',lat:-22.9068,lng:-43.1729},
+  {name:'Mexico City',cc:'MX',lat:19.4326,lng:-99.1332},{name:'Havana',cc:'CU',lat:23.1136,lng:-82.3666},
+  {name:'Cartagena',cc:'CO',lat:10.3910,lng:-75.4794},{name:'Santiago',cc:'CL',lat:-33.4489,lng:-70.6693},
+  {name:'La Paz',cc:'BO',lat:-16.5000,lng:-68.1500},{name:'Quito',cc:'EC',lat:-0.1807,lng:-78.4678},
+  {name:'Toronto',cc:'CA',lat:43.6532,lng:-79.3832},{name:'Vancouver',cc:'CA',lat:49.2827,lng:-123.1207},
+  {name:'San Francisco',cc:'US',lat:37.7749,lng:-122.4194},{name:'New Orleans',cc:'US',lat:29.9511,lng:-90.0715},
+  {name:'Lisbon',cc:'PT',lat:38.7223,lng:-9.1393},
+  {name:'Porto',cc:'PT',lat:41.1579,lng:-8.6291},{name:'Amsterdam',cc:'NL',lat:52.3676,lng:4.9041},
+  {name:'Berlin',cc:'DE',lat:52.5200,lng:13.4050},{name:'Prague',cc:'CZ',lat:50.0755,lng:14.4378},
+  {name:'Vienna',cc:'AT',lat:48.2082,lng:16.3738},{name:'Budapest',cc:'HU',lat:47.4979,lng:19.0402},
+  {name:'Kraków',cc:'PL',lat:50.0647,lng:19.9450},{name:'Copenhagen',cc:'DK',lat:55.6761,lng:12.5683},
+  {name:'Oslo',cc:'NO',lat:59.9139,lng:10.7522},{name:'Tromsø',cc:'NO',lat:69.6492,lng:18.9553},
+  {name:'Bergen',cc:'NO',lat:60.3913,lng:5.3221},{name:'Tbilisi',cc:'GE',lat:41.7151,lng:44.8271},
+  {name:'Yerevan',cc:'AM',lat:40.1792,lng:44.4991},{name:'Baku',cc:'AZ',lat:40.4093,lng:49.8671},
+  {name:'Almaty',cc:'KZ',lat:43.2220,lng:76.8512},{name:'Tashkent',cc:'UZ',lat:41.2995,lng:69.2401},
+  {name:'Kathmandu',cc:'NP',lat:27.7172,lng:85.3240},{name:'Colombo',cc:'LK',lat:6.9271,lng:79.8612},
+  {name:'Hanoi',cc:'VN',lat:21.0278,lng:105.8342},{name:'Ho Chi Minh City',cc:'VN',lat:10.8231,lng:106.6297},
+  {name:'Phnom Penh',cc:'KH',lat:11.5564,lng:104.9282},{name:'Vientiane',cc:'LA',lat:17.9757,lng:102.6331},
+  {name:'Kuala Lumpur',cc:'MY',lat:3.1390,lng:101.6869},{name:'Singapore',cc:'SG',lat:1.3521,lng:103.8198},
+  {name:'Jakarta',cc:'ID',lat:-6.2088,lng:106.8456},{name:'Bali',cc:'ID',lat:-8.4095,lng:115.1889},
+  {name:'Manila',cc:'PH',lat:14.5995,lng:120.9842},{name:'Seoul',cc:'KR',lat:37.5665,lng:126.9780},
+  {name:'Osaka',cc:'JP',lat:34.6937,lng:135.5023},{name:'Chiang Mai',cc:'TH',lat:18.7883,lng:98.9853},
+  {name:'Kyiv',cc:'UA',lat:50.4501,lng:30.5234},{name:'Warsaw',cc:'PL',lat:52.2297,lng:21.0122},
+  {name:'Bucharest',cc:'RO',lat:44.4268,lng:26.1025},{name:'Sofia',cc:'BG',lat:42.6977,lng:23.3219},
+  {name:'Belgrade',cc:'RS',lat:44.7866,lng:20.4489},{name:'Sarajevo',cc:'BA',lat:43.8563,lng:18.4131},
+  {name:'Tel Aviv',cc:'IL',lat:32.0853,lng:34.7818},{name:'Amman',cc:'JO',lat:31.9539,lng:35.9106},
+  {name:'Doha',cc:'QA',lat:25.2854,lng:51.5310},{name:'Muscat',cc:'OM',lat:23.5880,lng:58.3829},
+  {name:'Perth',cc:'AU',lat:-31.9523,lng:115.8613},{name:'Melbourne',cc:'AU',lat:-37.8136,lng:144.9631},
+  {name:'Auckland',cc:'NZ',lat:-36.8485,lng:174.7633},{name:'Honolulu',cc:'US',lat:21.3069,lng:-157.8583}
+];
+
+/* location-aware sponsor offers — generic names, local currency & prices */
+const CCY={TH:'THB',SE:'SEK',NO:'NOK',DK:'DKK',IS:'ISK',FI:'EUR',HR:'EUR',ES:'EUR',IT:'EUR',GR:'EUR',DE:'EUR',FR:'EUR',PT:'EUR',NL:'EUR',IE:'EUR',AT:'EUR',BE:'EUR',PE:'PEN',CN:'CNY',TR:'TRY',JP:'JPY',KR:'KRW',GB:'GBP',US:'USD',CA:'CAD',AU:'AUD',NZ:'NZD',AE:'AED',IN:'INR',BR:'BRL',MX:'MXN',ZA:'ZAR',SG:'SGD',ID:'IDR',PH:'PHP',VN:'VND',MY:'MYR'};
+const MONEY={
+  THB:{s:'฿',post:true,day:250,hour:300,drink:180,meal:150},
+  SEK:{s:' kr',post:true,day:250,hour:450,drink:129,meal:149},
+  NOK:{s:' kr',post:true,day:350,hour:650,drink:165,meal:199},
+  DKK:{s:' kr',post:true,day:200,hour:450,drink:95,meal:129},
+  ISK:{s:' kr',post:true,day:4000,hour:9000,drink:1900,meal:2500},
+  EUR:{s:'€',post:false,day:25,hour:55,drink:11,meal:14},
+  PEN:{s:'S/',post:false,day:40,hour:60,drink:25,meal:22},
+  CNY:{s:'¥',post:false,day:60,hour:120,drink:45,meal:35},
+  TRY:{s:'₺',post:false,day:400,hour:600,drink:250,meal:200},
+  JPY:{s:'¥',post:false,day:2000,hour:4000,drink:900,meal:1100},
+  KRW:{s:'₩',post:false,day:20000,hour:45000,drink:9000,meal:11000},
+  GBP:{s:'£',post:false,day:20,hour:45,drink:9,meal:12},
+  USD:{s:'$',post:false,day:25,hour:60,drink:12,meal:14},
+  CAD:{s:'C$',post:false,day:30,hour:70,drink:13,meal:16},
+  AUD:{s:'A$',post:false,day:30,hour:75,drink:14,meal:17},
+  NZD:{s:'NZ$',post:false,day:32,hour:78,drink:14,meal:18},
+  AED:{s:'AED ',post:false,day:90,hour:150,drink:45,meal:40},
+  INR:{s:'₹',post:false,day:500,hour:700,drink:300,meal:220},
+  BRL:{s:'R$',post:false,day:60,hour:120,drink:25,meal:30},
+  MXN:{s:'MX$',post:false,day:200,hour:400,drink:120,meal:120},
+  ZAR:{s:'R',post:false,day:200,hour:400,drink:60,meal:90},
+  SGD:{s:'S$',post:false,day:25,hour:60,drink:16,meal:12},
+  IDR:{s:'Rp',post:false,day:80000,hour:120000,drink:45000,meal:40000},
+  PHP:{s:'₱',post:false,day:500,hour:700,drink:220,meal:180},
+  VND:{s:'₫',post:true,day:200000,hour:300000,drink:90000,meal:70000},
+  MYR:{s:'RM',post:false,day:40,hour:90,drink:22,meal:18}
+};
+function money(cc,tier){const m=MONEY[CCY[(cc||'').toUpperCase()]]||MONEY.USD;const a=m[tier];return m.post?(a+m.s):(m.s+a);}
+function offersFor(cc){return [
+  {name:'The Sunset Bar',t:'🍹 Happy hour — 2-for-1 cocktails',b:'Every day 5–7pm. Cold drinks, cheap smiles. Come thirsty.'},
+  {name:'City Bike Rental',t:'🛵 Scooter rental '+money(cc,'day')+'/day',b:'Automatic bikes, helmets included, no deposit drama. Explore on two wheels.'},
+  {name:'The Burger Joint',t:'🍔 Free fries with any burger',b:'Show this pin at the counter. Juicy patties, crispy fries, zero regrets.'},
+  {name:'Zen Massage & Spa',t:'💆 Massage '+money(cc,'hour')+' / hour',b:'Real therapists, walk-ins welcome. Melt the day away.'},
+  {name:'Club Neon',t:'🎧 Live DJ tonight',b:'Doors 9pm, free entry before 10. Beats till late.'},
+  {name:'Corner Café',t:'☕ Buy one, get one coffee',b:'Fresh beans, comfy seats, fast wifi. Bring a friend.'},
+  {name:'Rooftop Lounge',t:'🌆 Sunset drinks '+money(cc,'drink')+' a glass',b:'Best view in town. Golden hour hits different up here.'},
+  {name:'The Grill House',t:'🍢 Grill combo '+money(cc,'meal'),b:'Smoky, generous, local favourite. Come hungry.'}
+];}
+
+/* ---------- sponsor pin tiers (buy concept) ---------- */
+const SPONSOR_TIERS=[
+  {id:'spark', name:'Spark',  emoji:'✨', mult:1,  days:1,  reach:600,  blurb:'A day in the spotlight. Your pin shows up in the area.'},
+  {id:'glow',  name:'Glow',   emoji:'🔥', mult:6,  days:7,  reach:1500, blurb:'A week on the map, with a subtle premium glow.'},
+  {id:'beacon',name:'Beacon', emoji:'🚀', mult:20, days:30, reach:4000, blurb:'A month, widest reach, top glow. Same clean pin.'}
+];
+function niceRound(v){if(v<50)return Math.round(v/5)*5;if(v<500)return Math.round(v/10)*10;if(v<5000)return Math.round(v/50)*50;if(v<50000)return Math.round(v/500)*500;return Math.round(v/5000)*5000;}
+function fmtMoney(cc,val){const m=MONEY[CCY[(cc||'').toUpperCase()]]||MONEY.USD;const a=niceRound(val);const g=(''+a).replace(/\B(?=(\d{3})+(?!\d))/g,' ');return m.post?(g+m.s):(m.s+g);}
+function tierPrice(cc,i){const base=(MONEY[CCY[(cc||'').toUpperCase()]]||MONEY.USD).day;return fmtMoney(cc,base*SPONSOR_TIERS[i].mult);}
+function reachTxt(m){return m>=1000?(m/1000)+' km':m+' m';}
+
+/* rules EN/SV/TH */
+const RULES={
+  en:{title:'Quick rules',lead:'Read it, takes 20 seconds.',ok:'Got it',items:[
+    '<b>Map stuff and places — not named people.</b> Puke, crap, angry whistles: yep. Calling out actual people: nope, sorry. This is for gross, not slander.',
+    '<b>Posts come from random people, not from this outfit.</b> A post means "someone reckoned something", not the truth — and people post drunk, so it gets messy. Use your head.',
+    '<b>We don\u2019t sell your lame data, nobody wants it anyway.</b> Everything is wiped after a day, so the drunk posts vanish. Relax.',
+    '<b>Spam and threats are out, behave.</b> We reserve the right to remove posts and ban misuse (of the app, that is).',
+    '<b>You\u2019re responsible for what you write</b> — that\u2019s just how it is.'],
+    fine:'By using yaybooo you accept this. The service is provided "as is" without warranties. Content is created by users and does not reflect our views.'},
+  sv:{title:'Snabba regler',lead:'L\u00e4s, det tar 20 sekunder.',ok:'Jag fattar',items:[
+    '<b>Kartl\u00e4gg grejer och platser \u2013 inte namngivna personer.</b> Spyor, skit, arga visselpipor: japp. Utpekade personer: nej, tyv\u00e4rr inte. Sidan vill ha \u00e4ckel, inte f\u00f6rtal.',
+    '<b>Inl\u00e4ggen kommer fr\u00e5n vanligt folk, inte fr\u00e5n denna koncern.</b> Ett inl\u00e4gg betyder "n\u00e5gon tyckte n\u00e5got", inte sanning \u2013 och folk kan skriva p\u00e5 fyllan, d\u00e5 blir det snurrigt. Anv\u00e4nd huvudet.',
+    '<b>Vi s\u00e4ljer inte din t\u00f6ntiga data, ingen vill ha den \u00e4nd\u00e5.</b> Skiten raderas efter ett dygn s\u00e5 fylleinl\u00e4ggen f\u00f6rsvinner. K\u00e4nn lugnet.',
+    '<b>Skr\u00e4p och hot \u00e5ker ut, vet hut.</b> Vi f\u00f6rbeh\u00e5ller oss r\u00e4tten att ta bort inl\u00e4gg och st\u00e4nga av vid missbruk (av appen allts\u00e5).',
+    '<b>Du ansvarar f\u00f6r det du skriver</b> \u2013 och s\u00e5 \u00e4r det.'],
+    fine:'Genom att anv\u00e4nda yaybooo godk\u00e4nner du det h\u00e4r. Tj\u00e4nsten tillhandah\u00e5lls "i befintligt skick" utan garantier. Inneh\u00e5ll skapas av anv\u00e4ndare och speglar inte v\u00e5ra \u00e5sikter.'},
+  th:{title:'กฎแบบเร็ว ๆ',lead:'อ่านหน่อย ใช้เวลาแค่ 20 วินาที',ok:'เข้าใจแล้ว',items:[
+    '<b>ปักหมุดสิ่งของและสถานที่ ไม่ใช่บุคคลที่ระบุตัวตน</b> อ้วก ขี้ นกหวีดโกรธ ๆ ได้เลย แต่การพาดพิงถึงบุคคลจริง ไม่ได้ ขอโทษด้วย ที่นี่สำหรับเรื่องน่าขยะแขยง ไม่ใช่การหมิ่นประมาท',
+    '<b>โพสต์มาจากคนทั่วไป ไม่ใช่จากเรา</b> โพสต์หมายถึง "มีคนคิดแบบนั้น" ไม่ใช่ความจริง และบางคนโพสต์ตอนเมา มันเลยอาจมั่ว ใช้วิจารณญาณ',
+    '<b>เราไม่ขายข้อมูลของคุณ ไม่มีใครอยากได้อยู่แล้ว</b> ทุกอย่างจะถูกลบหลังหนึ่งวัน โพสต์ตอนเมาก็จะหายไป สบายใจได้',
+    '<b>สแปมและการข่มขู่จะถูกลบ</b> เราขอสงวนสิทธิ์ในการลบโพสต์และระงับการใช้งานที่ผิดวัตถุประสงค์ (ของแอป)',
+    '<b>คุณรับผิดชอบสิ่งที่คุณเขียนเอง</b> ก็แค่นั้นแหละ'],
+    fine:'เมื่อใช้ yaybooo ถือว่าคุณยอมรับข้อกำหนดนี้ บริการให้ "ตามสภาพ" โดยไม่มีการรับประกัน เนื้อหาสร้างโดยผู้ใช้และไม่ได้สะท้อนความคิดเห็นของเรา'}
+};
+function setLang(l){const r=RULES[l];
+  document.getElementById('rbody').innerHTML='<h2>'+r.title+'</h2><div class="lead">'+r.lead+'</div><ul>'+r.items.map(x=>'<li>'+x+'</li>').join('')+'</ul><div class="fine">'+r.fine+'</div>';
+  document.getElementById('rok').textContent=r.ok;
+  ['en','sv','th'].forEach(x=>document.getElementById('tab-'+x).classList.toggle('active',x===l));}
+
+/* top/flop lists (like/dislike only) */
+const allPins=[];
+const voted=new Set();
+var curLabel='Pattaya',curCenter=[12.9320,100.8850];
+var glowOn=false,todayCount=0,nightOn=null,worldCount=0;
+function esc(s){return (''+s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),1400);}
+function inScope(p){
+  if(vibeMode&&vibeCircle){const c=vibeCircle.getLatLng();return hav(c.lat,c.lng,p.lat,p.lng)<=vibeRadius;}
+  if(map&&map._loaded){try{return map.getBounds().contains([p.lat,p.lng]);}catch(e){return true;}}
+  return true;
+}
+function render(side){
+  const agg={};
+  allPins.forEach(p=>{if(p.side!==side)return;if(!inScope(p))return;const k=p.item.w.toLowerCase();if(!agg[k])agg[k]={w:p.item.w,n:0};agg[k].n+=p.item.n;});
+  const arr=Object.values(agg).sort((a,b)=>b.n-a.n).slice(0,10);
+  const max=arr.length?arr[0].n:1;
+  const el=document.getElementById(side==='y'?'listY':'listB');el.innerHTML='';
+  if(!arr.length){el.innerHTML='<div class="empty">no posts yet</div>';return;}
+  arr.forEach((item,i)=>{
+    const row=document.createElement('div');row.className='row'+(i===0?' p1':'');
+    row.innerHTML='<span class="bar"></span><span class="rank">'+(i+1)+'</span><span class="word2">'+esc(item.w)+'</span><span class="count">'+item.n+'</span>';
+    row.style.cursor='pointer';row.onclick=()=>flyToWord(side,item.w);
+    el.appendChild(row);
+    requestAnimationFrame(()=>{row.querySelector('.bar').style.width=(item.n/max*100)+'%';});
+  });
+}
+function showPanel(open){document.getElementById('panel').classList.toggle('hidden',!open);document.getElementById('ptab').classList.toggle('show',!open);}
+function openRules(){document.getElementById('modal').classList.add('open');}
+function closeRules(){document.getElementById('modal').classList.remove('open');}
+document.getElementById('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeRules();});
+
+/* here / world scope */
+function setScope(s){
+  const el={here:document.getElementById('colsHere'),world:document.getElementById('colsWorld'),countries:document.getElementById('colsCountries')};
+  const seg={here:document.getElementById('seg-here'),world:document.getElementById('seg-world'),countries:document.getElementById('seg-countries')};
+  ['here','world','countries'].forEach(k=>{el[k].style.display=(k===s)?'':'none';seg[k].classList.toggle('active',k===s);});
+  if(s==='world')renderWorld();
+  if(s==='countries')renderCountries();
+}
+function wsec(title,list,kind,r0){
+  return '<div class="whead">'+title+'</div>'+list.map((r,rank)=>{
+    const col=r.yay>=60?'var(--yay)':r.yay>=46?'var(--gold)':'var(--boo)';
+    const badge=rank===0?' '+r0:'';
+    const nm=kind==='country'?('<span class="fl">'+flag(r.c.cc)+'</span> '+esc(r.c.name)):esc(r.c.name);
+    const fn=kind==='country'?'jumpToCountry':'jumpToCity';
+    return '<div class="wrow'+(rank===0?' p1':'')+'" onclick="'+fn+'('+r.i+')">'
+      +'<span class="wrank">'+(rank+1)+badge+'</span>'
+      +'<span class="wname">'+nm+'</span>'
+      +'<span class="wmeter"><span style="width:'+r.yay+'%;background:'+col+'"></span></span>'
+      +'<span class="wpct">'+r.yay+'%</span></div>';
+  }).join('');
+}
+function renderWorld(){
+  const el=document.getElementById('colsWorld');
+  const rows=WORLD_CITIES.map((c,i)=>({i,c,yay:32+Math.floor(Math.random()*60)}));
+  const best=rows.slice().sort((a,b)=>b.yay-a.yay).slice(0,7);
+  const worst=rows.slice().sort((a,b)=>a.yay-b.yay).slice(0,7);
+  el.innerHTML='<div class="livecount" id="worldcount"></div>'+wsec('🔥 Best vibes right now',best,'city','🔥')+wsec('💀 Worst vibes right now',worst,'city','💀');
+  updateLiveCount();
+}
+function renderCountries(){
+  const el=document.getElementById('colsCountries');
+  const rows=COUNTRIES.map((c,i)=>({i,c,yay:36+Math.floor(Math.random()*58)}));
+  const best=rows.slice().sort((a,b)=>b.yay-a.yay).slice(0,7);
+  const worst=rows.slice().sort((a,b)=>a.yay-b.yay).slice(0,7);
+  el.innerHTML=wsec('🏆 Happiest countries',best,'country','🏆')+wsec('😤 Grumpiest countries',worst,'country','😤');
+}
+function jumpToCity(i){const c=WORLD_CITIES[i];if(c)jumpTo(c.lat,c.lng,c.cc,c.name);}
+function jumpToCountry(i){const c=COUNTRIES[i];if(c)jumpTo(c.lat,c.lng,c.cc,c.name);}
+function vibrate(ms){try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}}
+function surprise(){
+  if(spinning||!map)return;
+  spinning=true;closeReveal();
+  const final=RANDOM_CITIES[Math.floor(Math.random()*RANDOM_CITIES.length)];
+  const reel=document.getElementById('reel'),inner=document.getElementById('reelInner');
+  reel.classList.add('show');vibrate(8);
+  let ticks=0,delay=45;
+  (function step(){
+    const c=RANDOM_CITIES[Math.floor(Math.random()*RANDOM_CITIES.length)];
+    inner.innerHTML='<span class="rl-flag">'+flag(c.cc)+'</span><span class="rl-name">'+esc(c.name)+'</span>';
+    ticks++;if(ticks>9)delay*=1.18;
+    if(ticks<16){spinIv=setTimeout(step,delay);}
+    else{
+      inner.innerHTML='<span class="rl-flag">'+flag(final.cc)+'</span><span class="rl-name">'+esc(final.name)+'</span>';
+      vibrate(20);
+      setTimeout(()=>{reel.classList.remove('show');spinning=false;pendingReveal=true;jumpTo(final.lat,final.lng,final.cc,final.name);},280);
+    }
+  })();
+}
+function showReveal(){
+  const s=viewStats(),tot=s.y+s.b,pct=tot?Math.round(s.y/tot*100):50;
+  let badge,col,emoji;
+  if(pct>=92){badge='JACKPOT · top vibe';col='var(--gold)';emoji='⚡';}
+  else if(pct>=78){badge='On fire right now';col='var(--yay)';emoji='🔥';}
+  else if(pct>=55){badge='Solid vibe';col='var(--yay)';emoji='😎';}
+  else if(pct>=40){badge='Mixed bag';col='var(--gold)';emoji='😐';}
+  else{badge='Avoid';col='var(--boo)';emoji='💀';}
+  const rv=document.getElementById('reveal');if(!rv)return;
+  document.getElementById('rvFlag').textContent=flag(curCC);
+  document.getElementById('rvCity').textContent=curLabel||'Somewhere';
+  const bd=document.getElementById('rvBadge');bd.textContent=emoji+' '+badge;bd.style.color=col;
+  document.getElementById('rvTop').textContent=s.ty?('↗ '+s.ty.w):'';
+  const bar=document.getElementById('rvBar'),pctEl=document.getElementById('rvPct');
+  bar.style.width='0%';bar.style.background=col;pctEl.style.color=col;pctEl.textContent='0%';
+  rv.classList.remove('jackpot');if(pct>=92){rv.classList.add('jackpot');confettiBurst();vibrate([12,40,12]);}else{vibrate(12);}
+  rv.classList.add('show');
+  let cur=0;clearInterval(rv._iv);
+  rv._iv=setInterval(()=>{cur+=Math.max(1,Math.round((pct-cur)/5));if(cur>=pct){cur=pct;clearInterval(rv._iv);}pctEl.textContent=cur+'%';bar.style.width=cur+'%';},28);
+}
+function closeReveal(){const rv=document.getElementById('reveal');if(rv){rv.classList.remove('show');clearInterval(rv._iv);}}
+
+/* voting (list rows + map pins) */
+let voteRef=null;
+let armedPin=null;
+function showVote(item,side,key){voteRef={item,side,key};
+  document.getElementById('voteWord').textContent=item.w;
+  document.getElementById('voteCount').textContent=item.n;
+  lockUI(voted.has(key));document.getElementById('voteModal').classList.add('open');}
+function openPin(item,side){showVote(item,side,'pin|'+item.id);}
+function lockUI(locked){document.getElementById('voteUp').classList.toggle('locked',locked);document.getElementById('voteDown').classList.toggle('locked',locked);document.getElementById('voteMsg').textContent=locked?'you already voted on this':'';}
+function vote(delta){
+  if(!voteRef)return;if(voted.has(voteRef.key))return;
+  voteRef.item.n+=delta;if(voteRef.item.n<0)voteRef.item.n=0;voted.add(voteRef.key);
+  document.getElementById('voteCount').textContent=voteRef.item.n;lockUI(true);
+  render('y');render('b');
+}
+function closeVote(){document.getElementById('voteModal').classList.remove('open');voteRef=null;}
+document.getElementById('voteModal').addEventListener('click',e=>{if(e.target.id==='voteModal')closeVote();});
+
+function wireDl(el){if(!el)return;el.classList.add('store');if(PLAY_URL){el.innerHTML=SVG_PLAY+' <span class="dltext">Get it on Play Store</span>';el.onclick=()=>window.open(PLAY_URL,'_blank');}else{el.innerHTML=SVG_PLAY+' <span class="dltext">Available on Play Store</span>';el.onclick=()=>toast('🚀 Launching on Play Store soon');}}
+
+/* ---- run lists + ui first (always work even if map fails) ---- */
+setLang('en');
+document.querySelectorAll('[data-sym="y"]').forEach(e=>e.innerHTML=SVG_YAY);
+document.querySelectorAll('[data-sym="b"]').forEach(e=>e.innerHTML=SVG_BOO);
+document.getElementById('sicon').innerHTML=SVG_SEARCH;
+document.getElementById('voteUp').innerHTML=SVG_YAY;
+document.getElementById('voteDown').innerHTML=SVG_BOO;
+wireDl(document.getElementById('dlBtn'));
+worldCount=2400000+Math.floor(Math.random()*900000);todayCount=800+Math.floor(Math.random()*1600);updateLiveCount();
+render('y');render('b');
+
+/* search wiring */
+document.getElementById('searchGo').addEventListener('click',doSearch);
+document.getElementById('searchX').addEventListener('click',exitSearch);
+document.getElementById('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();if(e.key==='Escape')exitSearch();});
+document.getElementById('searchInput').addEventListener('input',renderSuggest);
+function enterSearch(){document.getElementById('chipbar').classList.add('hide');document.getElementById('searchbox').classList.add('show');const inp=document.getElementById('searchInput');inp.value='';document.getElementById('suggest').classList.remove('show');setTimeout(()=>inp.focus(),30);}
+function exitSearch(){document.getElementById('searchbox').classList.remove('show');document.getElementById('suggest').classList.remove('show');document.getElementById('chipbar').classList.remove('hide');document.getElementById('searchInput').blur();}
+let curSuggest=[],sugT=null,sugTok=0;
+function renderSuggest(){
+  const q=document.getElementById('searchInput').value.trim(),box=document.getElementById('suggest');
+  if(!q){box.classList.remove('show');box.innerHTML='';curSuggest=[];return;}
+  const nq=norm(q),seen={},items=[];
+  Object.keys(GAZ).forEach(k=>{const g=GAZ[k],lab=norm(g.label);if(k.indexOf(nq)>=0||lab.indexOf(nq)>=0){const key=g.label.toLowerCase();if(!seen[key]){seen[key]=1;items.push({label:g.label,cc:g.cc,lat:g.lat,lng:g.lng,pre:(k.indexOf(nq)===0||lab.indexOf(nq)===0)});}}});
+  items.sort((a,b)=>(b.pre?1:0)-(a.pre?1:0));
+  drawSuggest(items.slice(0,7));
+  const tok=++sugTok;clearTimeout(sugT);
+  sugT=setTimeout(()=>{
+    fetch('https://api.stadiamaps.com/geocoding/v1/autocomplete?size=6&layers=locality,region,country,localadmin&text='+encodeURIComponent(q)+'&api_key='+STADIA_KEY)
+      .then(r=>r.json()).then(j=>{
+        if(tok!==sugTok)return;
+        const merged=items.slice(),s2={};items.forEach(x=>s2[x.label.toLowerCase()]=1);
+        ((j&&j.features)||[]).forEach(f=>{const pr=f.properties||{},co=f.geometry&&f.geometry.coordinates;if(!co||!pr.label)return;const key=pr.label.toLowerCase();if(s2[key])return;s2[key]=1;merged.push({label:pr.label,cc:alpha2(pr.country_a||pr.country_code||pr.country),lat:co[1],lng:co[0]});});
+        drawSuggest(merged.slice(0,7));
+      }).catch(()=>{});
+  },200);
+}
+function drawSuggest(items){
+  curSuggest=items;const box=document.getElementById('suggest');
+  if(!items.length){box.classList.remove('show');box.innerHTML='';return;}
+  box.innerHTML=items.map((x,i)=>'<div class="sug" onclick="chooseSuggest('+i+')"><span class="fl">'+flag(x.cc)+'</span><span class="snm">'+esc(x.label)+'</span><span class="styp">'+(x.cc||'')+'</span></div>').join('');
+  box.classList.add('show');
+}
+function chooseSuggest(i){const x=curSuggest[i];if(!x)return;exitSearch();jumpTo(x.lat,x.lng,x.cc,x.label);}
+function doSearch(){
+  const q=document.getElementById('searchInput').value.trim();
+  if(!q)return;
+  if(curSuggest.length){chooseSuggest(0);return;}
+  const g=GAZ[norm(q)];
+  if(g){exitSearch();jumpTo(g.lat,g.lng,g.cc,g.label);return;}
+  toast('searching…');
+  fetch('https://api.stadiamaps.com/geocoding/v1/search?size=1&text='+encodeURIComponent(q)+'&api_key='+STADIA_KEY)
+    .then(r=>r.json()).then(j=>{
+      const f=j&&j.features&&j.features[0];
+      if(!f){toast('place not found');return;}
+      const co=f.geometry.coordinates,pr=f.properties||{};
+      const cc=alpha2(pr.country_a||pr.country_code||pr.country);
+      exitSearch();jumpTo(co[1],co[0],cc,pr.label||q);
+    }).catch(()=>toast('search failed — try again'));
+}
+
+/* ---- favourites: browser-tab style chips, saved locally ---- */
+function flag(cc){cc=(cc||'').toUpperCase();if(!/^[A-Z]{2}$/.test(cc))return '📍';return String.fromCodePoint(...[...cc].map(c=>127397+c.charCodeAt(0)));}
+
+/* ---------- live world: ticker (FOMO) + wall of weird ---------- */
+/* dedicated absurd pool for the wall — gross/dumb/cursed, no named people */
+const WEIRD=[
+  {t:"Puke on my shoe 🤮👟",s:'b'},{t:"Snus under every table 🇸🇪",s:'b'},{t:"Monkey stole my condoms 🐒",s:'b'},
+  {t:"A camel kicked me in the balls 🐫",s:'b'},{t:"Stepped in warm dog shit 💩",s:'b'},{t:"Seagull robbed my kebab 🦅",s:'b'},
+  {t:"Someone farted in the elevator 💨",s:'b'},{t:"Pigeon shat right on my head 🐦💩",s:'b'},{t:"Guy peeing in the fountain 🙃",s:'b'},
+  {t:"Cockroach doing laps in my beer 🪳🍺",s:'b'},{t:"Dropped my phone in the squat toilet 📱💀",s:'b'},{t:"Found a random tooth on the floor 🦷",s:'b'},
+  {t:"Rat ran clean over my foot 🐀",s:'b'},{t:"Durian bomb in the aircon 🤢",s:'b'},{t:"Someone microwaved fish 🐟",s:'b'},
+  {t:"Lost a flip-flop to the sea 🩴",s:'b'},{t:"Vomit rainbow outside 7-Eleven 🌈🤮",s:'b'},{t:"Street dog humping a scooter 🛵",s:'b'},
+  {t:"Gecko fell in my drink 🦎",s:'b'},{t:"Wasp owns the beer garden now 🐝",s:'b'},{t:"Mystery smell in the stairwell 😷",s:'b'},
+  {t:"Toilet out of paper. Again. 🧻",s:'b'},{t:"Sweaty stranger hugged me 🫠",s:'b'},{t:"Chihuahua challenged a Great Dane 🐕",s:'b'},
+  {t:"Sunburn shaped like a handprint ✋🔥",s:'b'},{t:"Buffet ran out right before me 🍽️",s:'b'},{t:"Guy eating soup with his hands 🥣",s:'b'},
+  {t:"Firework went sideways into the bar 🎆💀",s:'b'},{t:"Stag party puking in unison 🤢",s:'b'},{t:"Naked jogger at sunrise 🌅",s:'b'},
+  {t:"Cat knocked my beer off the bar 🐈🍺",s:'b'},{t:"Stranger's baby threw fries at me 🍟",s:'b'},{t:"Old man flexing in a speedo 🩲",s:'b'},
+  {t:"Grandma out-drank the whole bar 🍻🔥",s:'y'},{t:"Free-samples guy gave me twelve 😎",s:'y'},{t:"Random parade blocked everything 🎉",s:'y'},
+  {t:"Karaoke guy NAILED the high note 🎤🔥",s:'y'},{t:"Dog wearing tiny shoes 🐕👟",s:'y'},{t:"Someone brought a parrot to the bar 🦜",s:'y'},
+  {t:"Lost my group, found a better one 🍻",s:'y'},{t:"Guy doing pushups in the club 💪",s:'y'},{t:"Cheapest beer of my life 🍺",s:'y'},
+  {t:"Chicken walked into the 7-Eleven 🐔",s:'b'},{t:"Someone's toupee flew off 💨",s:'b'},{t:"Drunk uncle karaoke, third time 🎤",s:'b'}
+];
+function weirdEvent(){
+  const c=RANDOM_CITIES[Math.floor(Math.random()*RANDOM_CITIES.length)];
+  const w=WEIRD[Math.floor(Math.random()*WEIRD.length)];
+  return {name:c.name,cc:c.cc,lat:c.lat,lng:c.lng,side:w.s,word:w.t};
+}
+function worldEvent(preferBoo){
+  const c=RANDOM_CITIES[Math.floor(Math.random()*RANDOM_CITIES.length)];
+  const bank=BANKS[c.cc]||BANKS.DEFAULT;
+  const side=preferBoo?(Math.random()<0.68?'b':'y'):(Math.random()<0.55?'y':'b');
+  const arr=(side==='y'?bank.y:bank.b);const word=arr[Math.floor(Math.random()*arr.length)];
+  return {name:c.name,cc:c.cc,lat:c.lat,lng:c.lng,side:side,word:word};
+}
+var tickerIv=null,tickerLast=null;
+function tickerStep(){
+  const el=document.getElementById('ticker');if(!el)return;
+  const e=worldEvent(false);tickerLast=e;
+  const emo=e.side==='y'?'🔥':'💀';
+  el.innerHTML='<span class="tk-live"></span><span class="tk-emo">'+emo+'</span><span class="tk-flag">'+flag(e.cc)+'</span><b>'+esc(e.name)+'</b><span class="tk-word">'+esc(e.word)+'</span>';
+  el.classList.remove('in');void el.offsetWidth;el.classList.add('in');
+}
+function startTicker(){const el=document.getElementById('ticker');if(!el)return;el.classList.remove('hide');tickerStep();if(tickerIv)clearInterval(tickerIv);tickerIv=setInterval(()=>{if(!vibeMode&&!document.hidden)tickerStep();},3600);}
+function tickerTap(){if(!tickerLast)return;jumpTo(tickerLast.lat,tickerLast.lng,tickerLast.cc,tickerLast.name);}
+
+var wallEvents=[];
+function openWall(){renderWall();document.getElementById('wallModal').classList.add('open');}
+function closeWall(){document.getElementById('wallModal').classList.remove('open');}
+document.getElementById('wallModal').addEventListener('click',e=>{if(e.target.id==='wallModal')closeWall();});
+function renderWall(){
+  wallEvents=[];let rows='';const seen={};let guard=0;
+  while(wallEvents.length<12&&guard<300){guard++;const e=weirdEvent();const key=e.word;if(seen[key])continue;seen[key]=1;
+    const i=wallEvents.push(e)-1,emo=e.side==='y'?'🔥':'💀';
+    rows+='<div class="wrow" onclick="wallGo('+i+')"><span class="w-emo">'+emo+'</span><span class="w-flag">'+flag(e.cc)+'</span><div class="w-txt"><div class="w-word">'+esc(e.word)+'</div><div class="w-city">'+esc(e.name)+'</div></div><span class="w-go">→</span></div>';
+  }
+  document.getElementById('wallList').innerHTML=rows;
+}
+function wallGo(i){const e=wallEvents[i];if(!e)return;closeWall();jumpTo(e.lat,e.lng,e.cc,e.name);}
+let favs=[];
+try{favs=JSON.parse(localStorage.getItem('yb_favs')||'null')||[];}catch(e){favs=[];}
+if(!favs.length)favs=[
+  {label:'Pattaya',cc:'TH',lat:12.9320,lng:100.8850},
+  {label:'Stockholm',cc:'SE',lat:59.3293,lng:18.0686},
+  {label:'Split',cc:'HR',lat:43.5081,lng:16.4402},
+  {label:'Tokyo',cc:'JP',lat:35.6762,lng:139.6503},
+  {label:'Lima',cc:'PE',lat:-12.0464,lng:-77.0428}
+];
+function saveFavs(){try{localStorage.setItem('yb_favs',JSON.stringify(favs));}catch(e){}}
+function isActiveFav(f){return typeof curCenter!=='undefined'&&curCenter&&Math.abs(f.lat-curCenter[0])<0.05&&Math.abs(f.lng-curCenter[1])<0.05;}
+function renderChips(){
+  const bar=document.getElementById('chipbar');if(!bar)return;
+  let h='<div class="chip searchchip" onclick="enterSearch()">'+SVG_SEARCH+'</div>';
+  h+='<div class="chip dicechip" onclick="surprise()" title="Surprise me">🎲</div>';
+  h+='<div class="chip weirdchip" onclick="openWall()" title="Wall of weird">🤪</div>';
+  favs.forEach((f,i)=>{h+='<div class="chip'+(isActiveFav(f)?' active':'')+'" data-i="'+i+'"><span class="fl">'+flag(f.cc)+'</span>'+esc(f.label)+'</div>';});
+  bar.innerHTML=h;
+  bar.querySelectorAll('.chip[data-i]').forEach(el=>{
+    const i=+el.getAttribute('data-i');let t=null,held=false;
+    el.addEventListener('click',()=>{if(held){held=false;return;}const f=favs[i];if(f)jumpTo(f.lat,f.lng,f.cc,f.label);});
+    el.addEventListener('touchstart',()=>{held=false;t=setTimeout(()=>{held=true;removeFav(i);},550);},{passive:true});
+    el.addEventListener('touchmove',()=>{clearTimeout(t);},{passive:true});
+    el.addEventListener('touchend',()=>clearTimeout(t));
+    el.addEventListener('contextmenu',e=>{e.preventDefault();removeFav(i);});
+  });
+}
+function addFav(){
+  let lat,lng;
+  if(map){const c=map.getCenter();lat=c.lat;lng=c.lng;}
+  else if(curCenter){lat=curCenter[0];lng=curCenter[1];}
+  else {toast('move somewhere first');return;}
+  if(favs.some(x=>Math.abs(x.lat-lat)<0.03&&Math.abs(x.lng-lng)<0.03)){toast('already pinned');return;}
+  const f={label:curLabel||'Pinned spot',cc:curCC||'',lat:lat,lng:lng};
+  favs.push(f);saveFavs();renderChips();toast('⭐ '+f.label+' pinned');
+  if(typeof reverseCC==='function')reverseCC([lat,lng],(cc,lb)=>{let ch=false;if(cc&&cc!==f.cc){f.cc=cc;ch=true;}if(lb&&lb!==f.label){f.label=lb;ch=true;}if(ch){saveFavs();renderChips();}});
+}
+function removeFav(i){const f=favs[i];if(!f)return;favs.splice(i,1);saveFavs();renderChips();toast('removed '+f.label);}
+renderChips();
+
+/* ---------- MAP ---------- */
+const CENTER=[12.9320,100.8850];
+var map=null,vibeLayer=null,sponsorLayer=null,holdArea=false,yHeat=null,bHeat=null;
+var buyOpen=false,previewPin=null,curTier=1,boughtLayer=null;
+var spinning=false,spinIv=null,pendingReveal=false;
+const livePins=[];
+let curCC='TH',curBank=BANKS.TH,seedC=null,programMove=false,moveT=null;
+const RESEED_M=4500;
+function makeVibeLayer(){
+  if(L.markerClusterGroup){return L.markerClusterGroup({showCoverageOnHover:false,spiderfyOnMaxZoom:true,maxClusterRadius:46,disableClusteringAtZoom:18,iconCreateFunction:clusterIcon});}
+  return L.layerGroup();
+}
+function clusterIcon(cluster){
+  const ch=cluster.getAllChildMarkers();let y=0,b=0;ch.forEach(m=>{m._side==='y'?y++:b++;});
+  const n=cluster.getChildCount(),col=y>=b?'#12b866':'#f01f3c';
+  return L.divIcon({className:'',iconSize:[36,36],iconAnchor:[18,18],html:'<div class="vibeclu" style="background:'+col+'">'+n+'</div>'});
+}
+function mapFail(msg){const f=document.getElementById('mapfail');f.textContent=msg;f.classList.add('show');}
+function pinIcon(t){return L.divIcon({className:'',iconSize:[25,25],iconAnchor:[12,12],html:'<div class="vibepin" style="background:'+(t==='y'?'#12b866':'#f01f3c')+'">'+(t==='y'?SVG_YAY:SVG_BOO)+'</div>'});}
+function sponPinHtml(tierIdx,name){
+  const sz=27;
+  return {sz:sz,html:'<div class="sponwrap spon-t'+(tierIdx+1)+'"><div class="vibepin sponpin" style="background:#ffc53d;width:'+sz+'px;height:'+sz+'px"><span style="color:#4a3400;font-size:13px">\u2605</span></div></div>'};
+}
+function sponsorIcon(tierIdx,name){tierIdx=tierIdx||0;const o=sponPinHtml(tierIdx,name);const half=Math.round(o.sz/2);return L.divIcon({className:'',iconSize:[o.sz,o.sz],iconAnchor:[half,half],html:o.html});}
+function viewSpan(){try{const b=map.getBounds();return b.getNorth()-b.getSouth();}catch(e){return 0.02;}}
+function randInView(){const c=map.getCenter(),s=viewSpan();return [c.lat+(Math.random()-.5)*s*.7,c.lng+(Math.random()-.5)*s*.7];}
+function attachReaction(m,item,side){
+  m.on('click',()=>{
+    if(armedPin===item.id){armedPin=null;openPin(item,side);return;}
+    armedPin=item.id;
+    L.popup({offset:[0,-18],closeOnClick:true}).setLatLng(m.getLatLng()).setContent('<b style="color:'+(side==='y'?'#25e57e':'#ff5169')+'">'+(side==='y'?'Yay':'Boo')+'</b> '+esc(item.w)+'<br><small style="color:#8b95a3">tap again to vote ↗⤵</small>').openOn(map);
+  });
+  return m;
+}
+function flyToWord(side,word){
+  if(!map)return;
+  const c=map.getCenter();
+  const cands=allPins.filter(p=>p.side===side && p.item.w.toLowerCase()===word.toLowerCase());
+  if(!cands.length)return;
+  cands.sort((a,b)=>hav(c.lat,c.lng,a.lat,a.lng)-hav(c.lat,c.lng,b.lat,b.lng));
+  const t=cands[0];
+  programMove=true;map.flyTo([t.lat,t.lng],Math.max(map.getZoom(),16),{duration:.6});
+  L.popup({offset:[0,-18]}).setLatLng([t.lat,t.lng]).setContent('<b style="color:'+(side==='y'?'#25e57e':'#ff5169')+'">'+(side==='y'?'Yay':'Boo')+'</b> '+esc(t.item.w)).openOn(map);
+  showPanel(false);
+}
+
+/* water check via tile pixel colour (samples the light osm_bright tiles, CORS-enabled) */
+const tileCache={};
+function isWaterAt(lat,lng,cb){
+  try{
+    if(!map){cb(false);return;}
+    const z=Math.min(Math.round(map.getZoom()),16),n=Math.pow(2,z);
+    const xf=(lng+180)/360*n,yf=(1-Math.log(Math.tan(lat*Math.PI/180)+1/Math.cos(lat*Math.PI/180))/Math.PI)/2*n;
+    const xt=Math.floor(xf),yt=Math.floor(yf),px=Math.min(255,Math.floor((xf-xt)*256)),py=Math.min(255,Math.floor((yf-yt)*256));
+    const decide=img=>{try{
+      const c=document.createElement('canvas');c.width=c.height=256;const g=c.getContext('2d');g.drawImage(img,0,0);
+      const d=g.getImageData(px,py,1,1).data;
+      cb(d[2]>160 && (d[2]-d[0])>15 && (d[2]-d[1])>6 && d[0]<210);
+    }catch(e){cb(false);}};
+    const key=z+'/'+xt+'/'+yt,cc=tileCache[key];
+    if(cc){(cc.complete&&cc.naturalWidth)?decide(cc):cc.addEventListener('load',()=>decide(cc));return;}
+    const img=new Image();img.crossOrigin='anonymous';tileCache[key]=img;
+    img.onload=()=>decide(img);img.onerror=()=>cb(false);
+    img.src='https://tiles.stadiamaps.com/tiles/osm_bright/'+z+'/'+xt+'/'+yt+'.png?api_key='+STADIA_KEY;
+  }catch(e){cb(false);}
+}
+
+/* live pins */
+function dropPin(p,side,w){
+  if(!map||!vibeLayer)return;
+  const item={id:'L'+Date.now()+Math.floor(Math.random()*1000),w:w,n:1};
+  const m=L.marker(p,{icon:pinIcon(side)});m._side=side;vibeLayer.addLayer(m);attachReaction(m,item,side);
+  try{m.bindTooltip(esc(w),{permanent:true,direction:'top',offset:[0,-12],className:'livetip '+(side==='y'?'ty':'tb')}).openTooltip();setTimeout(()=>{try{m.closeTooltip();m.unbindTooltip();}catch(e){}},2800);}catch(e){}
+  const entry={lat:p[0],lng:p[1],side,item};allPins.push(entry);livePins.push({m,entry});
+  if(livePins.length>22){const old=livePins.shift();vibeLayer.removeLayer(old.m);const i=allPins.indexOf(old.entry);if(i>=0)allPins.splice(i,1);}
+  todayCount++;worldCount++;updateLiveCount();
+  render('y');render('b');if(glowOn)buildHeat();
+  if(vibeMode&&vibeCircle)computeVibe();
+}
+
+/* ---- seed a place ONCE — pins stay put until you jump somewhere far ---- */
+function reverseCC(pt,cb){
+  fetch('https://api.stadiamaps.com/geocoding/v1/reverse?size=1&point.lat='+pt[0]+'&point.lon='+pt[1]+'&api_key='+STADIA_KEY)
+    .then(r=>r.json()).then(j=>{const f=j&&j.features&&j.features[0],pr=f?(f.properties||{}):{};cb(f?alpha2(pr.country_a||pr.country_code||pr.country):'', pr.locality||pr.region||pr.name||pr.county||'');})
+    .catch(()=>cb('',''));
+}
+function seedArea(center,cc,label){
+  if(!map)return;
+  cc=alpha2(cc)||(''+cc).toUpperCase();
+  curCC=cc; curBank=BANKS[cc]||BANKS.DEFAULT; curCenter=[center[0],center[1]]; if(label)curLabel=label; renderChips();
+  if(vibeLayer)vibeLayer.clearLayers();else{vibeLayer=makeVibeLayer();vibeLayer.addTo(map);}
+  livePins.length=0;
+  for(let i=allPins.length-1;i>=0;i--)allPins.splice(i,1);
+  seedC={lat:center[0],lng:center[1]};
+  const span=viewSpan()||0.02;
+  const clusters=4+Math.floor(Math.random()*3);
+  for(let k=0;k<clusters;k++){
+    const clat=center[0]+(Math.random()-.5)*span*1.05, clng=center[1]+(Math.random()-.5)*span*1.05;
+    const yayLean=Math.random()<0.5, cnt=3+Math.floor(Math.random()*4);
+    for(let j=0;j<cnt;j++){
+      const la=clat+(Math.random()-.5)*span*.16, ln=clng+(Math.random()-.5)*span*.16;
+      const side=Math.random()<(yayLean?0.82:0.20)?'y':'b';
+      const bank=side==='y'?curBank.y:curBank.b;
+      const item={id:'a'+Math.random().toString(36).slice(2),w:bank[Math.floor(Math.random()*bank.length)],n:2+Math.floor(Math.random()*9)};
+      const entry={lat:la,lng:ln,side,item,area:true};
+      allPins.push(entry);
+      const m=L.marker([la,ln],{icon:pinIcon(side)});m._side=side;vibeLayer.addLayer(m);attachReaction(m,item,side);
+      (function(it,sd,a,b){isWaterAt(a,b,water=>{if(water){const wb=sd==='y'?WATER_Y:WATER_B;it.w=wb[Math.floor(Math.random()*wb.length)];render('y');render('b');}});})(item,side,la,ln);
+    }
+  }
+  refreshSponsors();
+  render('y');render('b');
+  todayCount=180+Math.floor(Math.random()*2200);updateLiveCount();
+  dayNight(center[1]);updateURL();if(glowOn)buildHeat();
+  if(vibeMode&&vibeCircle)computeVibe();
+  if(pendingReveal){pendingReveal=false;showReveal();}
+}
+/* find a nearby land point (sponsors are businesses — never in the sea) */
+function placeOnLand(cb,tries){
+  tries=tries||0;
+  const p=randInView();
+  isWaterAt(p[0],p[1],water=>{
+    if(!water||tries>=6){cb((water&&curCenter)?[curCenter[0]+(Math.random()-.5)*0.006,curCenter[1]+(Math.random()-.5)*0.006]:p);}
+    else placeOnLand(cb,tries+1);
+  });
+}
+function refreshSponsors(){
+  if(!map)return;
+  if(!sponsorLayer)sponsorLayer=L.layerGroup().addTo(map);else sponsorLayer.clearLayers();
+  const pool=offersFor(curCC);
+  for(let i=0;i<2;i++){
+    const offer=pool[Math.floor(Math.random()*pool.length)],id='sp'+Date.now()+'_'+i+'_'+Math.floor(Math.random()*999);
+    placeOnLand(p=>{
+      const m=L.marker(p,{icon:sponsorIcon()}).addTo(sponsorLayer);
+      m.on('click',()=>{
+        if(armedPin===id){armedPin=null;openSponsor(offer);return;}
+        armedPin=id;
+        L.popup({offset:[0,-18],closeOnClick:true}).setLatLng(m.getLatLng()).setContent('★ <b>'+esc(offer.name)+'</b><br>'+esc(offer.t)+'<br><small style="color:#8b95a3">tap again for details</small>').openOn(map);
+      });
+    });
+  }
+}
+function openSponsor(offer){
+  document.getElementById('sponBody').innerHTML='<div class="badge">★ SPONSORED</div><div class="sponname">'+esc(offer.name)+'</div><div class="offer">'+esc(offer.t)+'</div><div class="sponsub">'+esc(offer.b)+'</div><div class="spon-up" onclick="closeSponsor();openBuy();">📣 Want your own pin here? →</div>';
+  document.getElementById('sponModal').classList.add('open');
+}
+function closeSponsor(){document.getElementById('sponModal').classList.remove('open');}
+document.getElementById('sponModal').addEventListener('click',e=>{if(e.target.id==='sponModal')closeSponsor();});
+
+/* ---------- buy a sponsor pin (concept / feel) ---------- */
+function renderTierCards(){
+  const box=document.getElementById('buyTiers');if(!box)return;
+  box.innerHTML=SPONSOR_TIERS.map((t,i)=>
+    '<div class="tcard'+(i===curTier?' sel':'')+'" onclick="selectTier('+i+')">'
+    +'<div class="tc-top"><span class="tc-emoji">'+t.emoji+'</span><span class="tc-name">'+t.name+'</span></div>'
+    +'<div class="tc-price">'+tierPrice(curCC,i)+'</div>'
+    +'<div class="tc-days">'+t.days+' day'+(t.days>1?'s':'')+' · reach '+reachTxt(t.reach)+'</div>'
+    +'<div class="tc-blurb">'+t.blurb+'</div></div>'
+  ).join('');
+}
+function selectTier(i){
+  curTier=i;
+  document.querySelectorAll('#buyTiers .tcard').forEach((el,k)=>el.classList.toggle('sel',k===i));
+  if(previewPin)previewPin.setIcon(sponsorIcon(i));
+  const go=document.getElementById('buyGo');if(go)go.textContent='Go live — '+tierPrice(curCC,i);
+}
+function buyNameChanged(){}
+function openBuy(){
+  if(!map)return;
+  if(vibeMode)toggleVibe();
+  buyOpen=true;curTier=1;
+  document.getElementById('buyPlace').textContent=curLabel||'this spot';
+  document.getElementById('buyName').value='';
+  document.getElementById('buyMain').style.display='';
+  document.getElementById('buyState').style.display='none';
+  const c=map.getCenter();
+  if(previewPin){map.removeLayer(previewPin);previewPin=null;}
+  previewPin=L.marker(c,{icon:sponsorIcon(curTier),zIndexOffset:1500,interactive:false}).addTo(map);
+  renderTierCards();selectTier(curTier);
+  document.getElementById('buysheet').classList.add('open');
+}
+function confirmBuy(){
+  if(!map)return;
+  const idx=curTier,t=SPONSOR_TIERS[idx];
+  const nm=(document.getElementById('buyName').value||'').trim()||'Your spot';
+  const ll=previewPin?previewPin.getLatLng():map.getCenter();
+  if(!boughtLayer)boughtLayer=L.layerGroup().addTo(map);
+  const m=L.marker(ll,{icon:sponsorIcon(idx),zIndexOffset:1200}).addTo(boughtLayer);
+  m.on('click',()=>showBought(nm,idx,t.days));
+  if(previewPin){map.removeLayer(previewPin);previewPin=null;}
+  buyOpen=false;
+  confettiBurst();toast('🎉 '+nm+' is live!');
+  document.getElementById('buyDoneSub').textContent=nm+' · '+t.emoji+' '+t.name+' · '+t.days+' day'+(t.days>1?'s':'')+' · '+tierPrice(curCC,idx);
+  document.getElementById('buyMain').style.display='none';
+  document.getElementById('buyState').style.display='';
+}
+function closeBuy(){
+  document.getElementById('buysheet').classList.remove('open');
+  if(previewPin&&map){map.removeLayer(previewPin);previewPin=null;}
+  buyOpen=false;
+}
+function showBought(name,idx,days){
+  const t=SPONSOR_TIERS[idx];
+  document.getElementById('sponBody').innerHTML='<div class="badge">★ YOUR PIN · LIVE</div><div class="sponname">'+t.emoji+' '+t.name+'</div><div class="offer">'+esc(name)+'</div><div class="sponsub">Live for '+days+' day'+(days>1?'s':'')+' · reach '+reachTxt(t.reach)+'. This is the vibe — real checkout comes later.</div>';
+  document.getElementById('sponModal').classList.add('open');
+}
+function confettiBurst(){
+  try{
+    const c=document.createElement('div');c.className='confetti';document.body.appendChild(c);
+    const cols=['#ffc53d','#25e57e','#ffe6a3','#ffffff','#ff3b52'];
+    for(let i=0;i<28;i++){const s=document.createElement('span');const x=(Math.random()*2-1)*180,r=Math.random()*720-360,d=800+Math.random()*700;
+      s.style.cssText='background:'+cols[i%cols.length]+';--x:'+x+'px;--r:'+r+'deg;animation-duration:'+d+'ms;left:'+(48+Math.random()*4)+'%;';c.appendChild(s);}
+    setTimeout(()=>{try{c.remove();}catch(e){}},1600);
+  }catch(e){}
+}
+document.getElementById('shareDo').addEventListener('click',doShare);
+document.getElementById('shareModal').addEventListener('click',e=>{if(e.target.id==='shareModal')closeShare();});
+
+/* jump to a searched / tapped place, then seed it */
+function jumpTo(lat,lng,cc,label){
+  if(!map)return;
+  programMove=true;
+  map.flyTo([lat,lng],14,{duration:.8});
+  map.once('moveend',()=>{
+    if(label&&!pendingReveal)toast('📍 '+label);
+    if(cc)seedArea([lat,lng],cc,label);
+    else reverseCC([lat,lng],(c,lb)=>seedArea([lat,lng],c||'',label||lb));
+  });
+  showPanel(false);setScope('here');
+}
+
+/* Check vibe */
+var vibeMode=false,vibeCircle=null,vibeRadius=300,lastPinch=null;
+function hav(a,b,c,d){const R=6371000,r=Math.PI/180,dphi=(c-a)*r,dl=(d-b)*r;const x=Math.sin(dphi/2)**2+Math.cos(a*r)*Math.cos(c*r)*Math.sin(dl/2)**2;return 2*R*Math.asin(Math.sqrt(x));}
+function toggleVibe(){vibeMode=!vibeMode;
+  document.getElementById('vibebtn').classList.toggle('on',vibeMode);
+  document.getElementById('vibehint').classList.toggle('show',vibeMode);
+  document.getElementById('vibeslider').classList.toggle('show',vibeMode);
+  document.getElementById('bottomacts').style.display=vibeMode?'none':'flex';
+  document.getElementById('glowbtn').style.display=vibeMode?'none':'';
+  {const tk=document.getElementById('ticker');if(tk)tk.classList.toggle('hide',vibeMode);}
+  if(map){if(vibeMode){map.scrollWheelZoom.disable();map.doubleClickZoom.disable();map.touchZoom.disable();}else{map.scrollWheelZoom.enable();map.doubleClickZoom.enable();map.touchZoom.enable();clearVibe();render('y');render('b');}}}
+function setVibeRadius(v){vibeRadius=+v;if(vibeCircle){vibeCircle.setRadius(vibeRadius);computeVibe();}}
+function clearVibe(){if(vibeCircle&&map){map.removeLayer(vibeCircle);vibeCircle=null;}document.getElementById('viberes').classList.remove('show');}
+function placeVibe(latlng){if(!map)return;if(!vibeCircle)vibeCircle=L.circle(latlng,{radius:vibeRadius,color:'#151a22',weight:2,fillColor:'#3b4a5e',fillOpacity:.10}).addTo(map);else vibeCircle.setLatLng(latlng).setRadius(vibeRadius);computeVibe();}
+function computeVibe(){
+  if(!vibeCircle)return;
+  const c=vibeCircle.getLatLng();let y=0,b=0;const inside=[];
+  allPins.forEach(p=>{if(hav(c.lat,c.lng,p.lat,p.lng)<=vibeRadius){if(p.side==='y')y+=p.item.n;else b+=p.item.n;inside.push(p);}});
+  const el=document.getElementById('viberes');el.classList.add('show');
+  const tot=y+b;
+  if(!tot){el.innerHTML='<div class="vr-txt">No reactions in this circle yet — try a bigger area</div>';return;}
+  const ratio=y/tot,pct=Math.round(ratio*100);let label,col;
+  if(ratio>=0.66){label='Great vibe';col='var(--yay)';}else if(ratio>=0.4){label='Mixed';col='var(--gold)';}else{label='Avoid';col='var(--boo)';}
+  const dot='<span style="width:12px;height:12px;border-radius:50%;display:inline-block;background:'+col+'"></span>';
+  const top=inside.slice().sort((a,z)=>z.item.n-a.item.n)[0];
+  el.innerHTML='<div class="vr-head"><span class="vr-emoji">'+dot+'</span><span class="vr-label" style="color:'+col+'">'+label+'</span><span class="vr-pct">'+pct+'% yay</span></div><div class="vr-meter"><span style="width:'+pct+'%"></span></div>'+(top?'<div class="vr-top">Top: '+esc(top.item.w)+'</div>':'');
+  render('y');render('b');
+}
+
+/* glow (heat) — toggleable, off by default */
+function buildHeat(){
+  if(!map)return;
+  if(yHeat){map.removeLayer(yHeat);yHeat=null;}
+  if(bHeat){map.removeLayer(bHeat);bHeat=null;}
+  if(!glowOn||!L.heatLayer)return;
+  const yp=[],bp=[];
+  allPins.forEach(p=>{const w=Math.min(1,0.28+p.item.n/28);(p.side==='y'?yp:bp).push([p.lat,p.lng,w]);});
+  yHeat=L.heatLayer(yp,{radius:40,blur:30,minOpacity:.22,max:1,gradient:{0.2:'#0a5a2f',0.5:'#17c46a',1:'#25e57e'}}).addTo(map);
+  bHeat=L.heatLayer(bp,{radius:40,blur:30,minOpacity:.22,max:1,gradient:{0.2:'#5a0f19',0.5:'#e0233a',1:'#ff3b52'}}).addTo(map);
+}
+function toggleGlow(){glowOn=!glowOn;document.getElementById('glowbtn').classList.toggle('on',glowOn);buildHeat();toast(glowOn?'✨ Glow on':'Glow off');}
+
+/* day / night tint from local time at the viewed longitude */
+function dayNight(lng){
+  const now=new Date();
+  const localH=((now.getUTCHours()+now.getUTCMinutes()/60)+(lng/15)+24)%24;
+  const night=(localH<6||localH>=19);
+  if(night===nightOn)return;nightOn=night;
+  const c=map&&map.getContainer();if(c)c.classList.toggle('night',night);
+}
+
+/* shareable deep link */
+function shareLink(){const b=location.origin+location.pathname;const ll=curCenter?curCenter[0].toFixed(4)+','+curCenter[1].toFixed(4):'';return b+'?p='+encodeURIComponent(curLabel||'')+'&cc='+(curCC||'')+'&ll='+ll;}
+function updateURL(){try{history.replaceState(null,'','?p='+encodeURIComponent(curLabel||'')+'&cc='+(curCC||'')+'&ll='+(curCenter?curCenter[0].toFixed(4)+','+curCenter[1].toFixed(4):''));}catch(e){}}
+function parseURL(){try{const q=new URLSearchParams(location.search);const ll=q.get('ll');if(ll){const a=ll.split(',').map(Number);if(a.length===2&&isFinite(a[0])&&isFinite(a[1]))return{lat:a[0],lng:a[1],cc:(q.get('cc')||'').toUpperCase(),label:q.get('p')||''};}}catch(e){}return null;}
+
+/* live counter */
+function fmtN(n){return (''+Math.floor(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');}
+function updateLiveCount(){
+  const el=document.getElementById('livecount');if(el)el.innerHTML='<span class="lcdot"></span><span class="lcn">'+fmtN(todayCount)+'</span><span class="lct">vibes dropped here<br>today · live</span>';
+  const w=document.getElementById('worldcount');if(w)w.innerHTML='<span class="lcdot"></span><span class="lcn">'+fmtN(worldCount)+'</span><span class="lct">vibes dropped worldwide<br>today · live</span>';
+}
+
+/* share card (image) */
+function viewStats(){let y=0,b=0,ty=null,tb=null;allPins.forEach(p=>{let inv=true;if(map&&map._loaded){try{inv=map.getBounds().contains([p.lat,p.lng]);}catch(e){}}if(!inv)return;if(p.side==='y'){y+=p.item.n;if(!ty||p.item.n>ty.n)ty=p.item;}else{b+=p.item.n;if(!tb||p.item.n>tb.n)tb=p.item;}});return {y,b,ty,tb};}
+function hexA(hex,a){const h=hex.replace('#','');return 'rgba('+parseInt(h.slice(0,2),16)+','+parseInt(h.slice(2,4),16)+','+parseInt(h.slice(4,6),16)+','+a+')';}
+function wrapText(g,text,x,y,maxW,lh){const words=(''+text).split(' ');let line='',yy=y;for(let i=0;i<words.length;i++){const t=line+words[i]+' ';if(g.measureText(t).width>maxW&&i>0){g.fillText(line.trim(),x,yy);line=words[i]+' ';yy+=lh;}else line=t;}g.fillText(line.trim(),x,yy);}
+function drawShareCard(g,d){
+  g.fillStyle='#0d0f13';g.fillRect(0,0,1080,1080);
+  const rg=g.createRadialGradient(540,320,80,540,320,780);rg.addColorStop(0,hexA(d.col,.30));rg.addColorStop(1,'rgba(13,15,19,0)');g.fillStyle=rg;g.fillRect(0,0,1080,1080);
+  g.textAlign='left';g.font='800 66px Inter, sans-serif';
+  const yayW=g.measureText('yay').width,boooW=g.measureText('booo').width,sx=540-(yayW+boooW)/2;
+  g.fillStyle='#fff';g.fillText('yay',sx,150);g.fillStyle='#25e57e';g.fillText('booo',sx+yayW,150);
+  g.textAlign='center';
+  g.font='800 76px Inter, sans-serif';g.fillStyle='#fff';wrapText(g,d.place,540,330,960,84);
+  const cx=540,cy=630,r=180;
+  g.lineWidth=34;g.lineCap='round';g.strokeStyle='rgba(255,255,255,.10)';g.beginPath();g.arc(cx,cy,r,0,Math.PI*2);g.stroke();
+  g.strokeStyle=d.col;g.beginPath();g.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+Math.PI*2*(d.pct/100));g.stroke();
+  g.fillStyle='#fff';g.font='800 132px Inter, sans-serif';g.fillText(d.pct+'%',cx,cy+30);
+  g.fillStyle='#8b95a3';g.font='700 34px Inter, sans-serif';g.fillText('yay',cx,cy+84);
+  g.fillStyle=d.col;g.font='800 62px Inter, sans-serif';g.fillText(d.verdict,540,912);
+  g.font='600 32px Inter, sans-serif';g.fillStyle='#8b95a3';
+  let ln='';if(d.ty)ln+='↗ '+d.ty;if(d.tb)ln+=(ln?'      ':'')+'↘ '+d.tb;
+  if(ln)g.fillText(ln.slice(0,64),540,972);
+  g.fillStyle='#6b7280';g.font='700 32px Inter, sans-serif';g.fillText('yaybooo.com',540,1034);
+}
+let shareBlob=null,shareName='';
+function shareVibe(){
+  try{
+    const s=viewStats(),tot=s.y+s.b,pct=tot?Math.round(s.y/tot*100):50;
+    let verdict,col;if(pct>=66){verdict='Great vibe';col='#25e57e';}else if(pct>=40){verdict='Mixed';col='#ffc53d';}else{verdict='Avoid';col='#ff3b52';}
+    const cv=document.createElement('canvas');cv.width=1080;cv.height=1080;const g=cv.getContext('2d');
+    drawShareCard(g,{place:curLabel||'Somewhere',pct,verdict,col,ty:s.ty?s.ty.w:'',tb:s.tb?s.tb.w:''});
+    shareName='yaybooo-'+(curLabel||'vibe').replace(/[^a-z0-9]+/gi,'-').toLowerCase()+'.png';
+    document.getElementById('shareImg').src=cv.toDataURL('image/png');
+    document.getElementById('shareModal').classList.add('open');
+    shareBlob=null;if(cv.toBlob)cv.toBlob(b=>{shareBlob=b;},'image/png');
+  }catch(e){toast('could not make card');}
+}
+function closeShare(){document.getElementById('shareModal').classList.remove('open');}
+function doShare(){
+  const url=shareLink();
+  try{if(shareBlob&&navigator.canShare){const file=new File([shareBlob],shareName,{type:'image/png'});if(navigator.canShare({files:[file]})){navigator.share({files:[file],title:'yaybooo',text:(curLabel||'This place')+' — on yaybooo',url}).catch(()=>{});return;}}}catch(e){}
+  const a=document.createElement('a');a.href=document.getElementById('shareImg').src;a.download=shareName;document.body.appendChild(a);a.click();a.remove();toast('✨ Vibe card saved');
+}
+
+function initMap(){
+  if(typeof L==='undefined'){mapFail('Map could not load — check your connection and reopen.');return;}
+  try{
+    map=L.map('map',{zoomControl:false,attributionControl:true}).setView(CENTER,15);
+    L.control.zoom({position:'bottomleft'}).addTo(map);
+    const tiles=L.tileLayer('https://tiles.stadiamaps.com/tiles/osm_bright/{z}/{x}/{y}.png?api_key='+STADIA_KEY,{maxZoom:20,crossOrigin:true,attribution:'© Stadia Maps © OpenMapTiles © OpenStreetMap'});
+    tiles.addTo(map);
+    let warned=false;tiles.on('tileerror',()=>{if(!warned){warned=true;mapFail('Map tiles could not load (offline?). The lists still work.');}});
+    vibeLayer=makeVibeLayer();vibeLayer.addTo(map);
+    boughtLayer=L.layerGroup().addTo(map);
+    const u=parseURL();
+    try{
+      if(u){map.setView([u.lat,u.lng],14);if(u.cc)seedArea([u.lat,u.lng],u.cc,u.label);else reverseCC([u.lat,u.lng],(cc,lb)=>seedArea([u.lat,u.lng],cc||'',u.label||lb));}
+      else seedArea(CENTER,'TH','Pattaya');
+    }catch(e){}
+    map.on('moveend',()=>{
+      render('y');render('b');
+      if(buyOpen&&previewPin){previewPin.setLatLng(map.getCenter());return;}
+      if(programMove){programMove=false;return;}
+      closeReveal();
+      clearTimeout(moveT);moveT=setTimeout(()=>{
+        const c=map.getCenter();
+        if(!seedC||hav(c.lat,c.lng,seedC.lat,seedC.lng)>RESEED_M){
+          reverseCC([c.lat,c.lng],(cc,lb)=>seedArea([c.lat,c.lng],cc||curCC,lb));
+        }
+      },350);
+    });
+    map.on('click',e=>{if(vibeMode)placeVibe(e.latlng);});
+    const cont=map.getContainer(),tdist=t=>Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY);
+    cont.addEventListener('touchstart',e=>{if(vibeMode&&vibeCircle&&e.touches.length===2)lastPinch=tdist(e.touches);},{passive:false});
+    cont.addEventListener('touchmove',e=>{if(!vibeMode||!vibeCircle||e.touches.length!==2)return;e.preventDefault();const d=tdist(e.touches);if(lastPinch){vibeRadius=Math.max(80,Math.min(6000,vibeRadius*(d/lastPinch)));vibeCircle.setRadius(vibeRadius);computeVibe();document.getElementById('vibeRange').value=Math.round(vibeRadius);}lastPinch=d;},{passive:false});
+    cont.addEventListener('touchend',e=>{if(e.touches.length<2)lastPinch=null;});
+    cont.addEventListener('wheel',e=>{if(!vibeMode||!vibeCircle)return;e.preventDefault();vibeRadius=Math.max(80,Math.min(6000,vibeRadius*(e.deltaY>0?0.9:1.1)));vibeCircle.setRadius(vibeRadius);computeVibe();document.getElementById('vibeRange').value=Math.round(vibeRadius);},{passive:false});
+    setTimeout(()=>map.invalidateSize(),250);
+    startTicker();
+    if(window.innerWidth<768)showPanel(false);
+  }catch(e){mapFail('Map could not start — but the lists work.');}
+}
+window.addEventListener('load',initMap);
+
+/* live stream — uses the current place's vibe bank */
+const SIM=true;
+function simTick(){
+  if(!SIM||!map)return;
+  const side=Math.random()<0.5?'y':'b';
+  const p=randInView();
+  isWaterAt(p[0],p[1],water=>{const bank=water?(side==='y'?WATER_Y:WATER_B):(side==='y'?curBank.y:curBank.b);const w=bank[Math.floor(Math.random()*bank.length)];dropPin(p,side,w);});
+}
+setInterval(simTick,6000);
+setInterval(()=>{todayCount+=Math.floor(Math.random()*3);worldCount+=20+Math.floor(Math.random()*80);updateLiveCount();},2200);
+</script>
+</body>
+</html>
